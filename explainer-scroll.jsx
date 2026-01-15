@@ -1,384 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 // ============================================
-// DATA
+// DATA - Loaded from JSON files
 // ============================================
 
+import rawConvergenceData from './data/raw_convergence.json';
+import biasControlledDataRaw from './data/bias_controlled_results.json';
+import alphabetisationBiasDataRaw from './data/alphabetisation_bias_all_converged.json';
+import alphabetisationBiasDifferedRaw from './data/alphabetisation_bias_differed_in_control.json';
+import justificationCategoriesRaw from './data/justification_categories.json';
+import postHocCategoriesRaw from './data/post_hoc_categories.json';
+
 // Full results data (raw coordination without bias control)
-// Data from full_results.json - verified 2026-01-11
-const fullResultsData = {
-  results: [
-    // GPT-4.1
-    { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'salient_alphabetical', coordination_pct: 17.8, control_pct: 52.8, coordination_n: 400, is_reasoning: false },
-    { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'mundane_dangerous', coordination_pct: 42.5, control_pct: 54.2, coordination_n: 400, is_reasoning: false },
-    { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'random_emoji', coordination_pct: 3.2, control_pct: 17.0, coordination_n: 406, is_reasoning: false },
-    { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'random_mixed', coordination_pct: 32.0, control_pct: 33.3, coordination_n: 406, is_reasoning: false },
-    // GPT-4.1 Mini
-    { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'salient_alphabetical', coordination_pct: 79.0, control_pct: 90.2, coordination_n: 400, is_reasoning: false },
-    { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'mundane_dangerous', coordination_pct: 58.5, control_pct: 80.2, coordination_n: 400, is_reasoning: false },
-    { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'random_emoji', coordination_pct: 34.0, control_pct: 61.8, coordination_n: 406, is_reasoning: false },
-    { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'random_mixed', coordination_pct: 63.1, control_pct: 71.4, coordination_n: 406, is_reasoning: false },
-    // GPT-4.1 Nano
-    { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'salient_alphabetical', coordination_pct: 86.8, control_pct: 74.0, coordination_n: 400, is_reasoning: false },
-    { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'mundane_dangerous', coordination_pct: 60.5, control_pct: 15.5, coordination_n: 400, is_reasoning: false },
-    { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'random_emoji', coordination_pct: 63.1, control_pct: 26.6, coordination_n: 406, is_reasoning: false },
-    { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'random_mixed', coordination_pct: 64.8, control_pct: 55.7, coordination_n: 406, is_reasoning: false },
-    // Claude Opus 4.5
-    { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'salient_alphabetical', coordination_pct: 66.5, control_pct: 43.2, coordination_n: 400, is_reasoning: false },
-    { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'mundane_dangerous', coordination_pct: 60.0, control_pct: 63.2, coordination_n: 400, is_reasoning: false },
-    { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'random_emoji', coordination_pct: 6.4, control_pct: 3.5, coordination_n: 405, is_reasoning: false },
-    { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'random_mixed', coordination_pct: 17.2, control_pct: 9.1, coordination_n: 406, is_reasoning: false }
-  ]
-};
+const fullResultsData = rawConvergenceData;
 
-// Bias-controlled results
-// Data from bias_controlled_results_11_jan.json - updated 2026-01-11
-const biasControlledData = [
-  // GPT-4.1
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', model_family: 'openai', dataset: 'salient_alphabetical', coordination_pct: 3.7, coordination_ci: 2.82, is_reasoning: false },
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', model_family: 'openai', dataset: 'mundane_dangerous', coordination_pct: 13.7, coordination_ci: 4.98, is_reasoning: false },
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', model_family: 'openai', dataset: 'random_emoji', coordination_pct: 0.3, coordination_ci: 0.8, is_reasoning: false },
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', model_family: 'openai', dataset: 'random_mixed', coordination_pct: 14.0, coordination_ci: 4.14, is_reasoning: false },
-  // GPT-4.1 Mini
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', model_family: 'openai', dataset: 'salient_alphabetical', coordination_pct: 61.5, coordination_ci: 14.61, is_reasoning: false },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', model_family: 'openai', dataset: 'mundane_dangerous', coordination_pct: 34.2, coordination_ci: 10.24, is_reasoning: false },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', model_family: 'openai', dataset: 'random_emoji', coordination_pct: 16.8, coordination_ci: 5.87, is_reasoning: false },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', model_family: 'openai', dataset: 'random_mixed', coordination_pct: 43.1, coordination_ci: 8.87, is_reasoning: false },
-  // GPT-4.1 Nano
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', model_family: 'openai', dataset: 'salient_alphabetical', coordination_pct: 73.1, coordination_ci: 8.41, is_reasoning: false },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', model_family: 'openai', dataset: 'mundane_dangerous', coordination_pct: 57.7, coordination_ci: 5.24, is_reasoning: false },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', model_family: 'openai', dataset: 'random_emoji', coordination_pct: 62.1, coordination_ci: 5.48, is_reasoning: false },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', model_family: 'openai', dataset: 'random_mixed', coordination_pct: 56.1, coordination_ci: 7.17, is_reasoning: false },
-  // Claude Opus 4.1
-  { model_id: 'claude-opus-4.1', model_name: 'Claude Opus 4.1', model_family: 'anthropic', dataset: 'salient_alphabetical', coordination_pct: 65.1, coordination_ci: 6.01, is_reasoning: false },
-  { model_id: 'claude-opus-4.1', model_name: 'Claude Opus 4.1', model_family: 'anthropic', dataset: 'mundane_dangerous', coordination_pct: 11.5, coordination_ci: 3.69, is_reasoning: false },
-  { model_id: 'claude-opus-4.1', model_name: 'Claude Opus 4.1', model_family: 'anthropic', dataset: 'random_emoji', coordination_pct: 8.4, coordination_ci: 2.81, is_reasoning: false },
-  { model_id: 'claude-opus-4.1', model_name: 'Claude Opus 4.1', model_family: 'anthropic', dataset: 'random_mixed', coordination_pct: 27.7, coordination_ci: 5.82, is_reasoning: false },
-  // Claude Opus 4.5
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', model_family: 'anthropic', dataset: 'salient_alphabetical', coordination_pct: 49.3, coordination_ci: 6.45, is_reasoning: false },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', model_family: 'anthropic', dataset: 'mundane_dangerous', coordination_pct: 23.1, coordination_ci: 6.76, is_reasoning: false },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', model_family: 'anthropic', dataset: 'random_emoji', coordination_pct: 4.3, coordination_ci: 2.06, is_reasoning: false },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', model_family: 'anthropic', dataset: 'random_mixed', coordination_pct: 14.1, coordination_ci: 3.55, is_reasoning: false },
-  // Claude Sonnet 4
-  { model_id: 'claude-sonnet-4', model_name: 'Claude Sonnet 4', model_family: 'anthropic', dataset: 'salient_alphabetical', coordination_pct: 17.0, coordination_ci: 4.92, is_reasoning: false },
-  { model_id: 'claude-sonnet-4', model_name: 'Claude Sonnet 4', model_family: 'anthropic', dataset: 'mundane_dangerous', coordination_pct: 0.6, coordination_ci: 1.05, is_reasoning: false },
-  { model_id: 'claude-sonnet-4', model_name: 'Claude Sonnet 4', model_family: 'anthropic', dataset: 'random_emoji', coordination_pct: 0.0, coordination_ci: 0.47, is_reasoning: false },
-  { model_id: 'claude-sonnet-4', model_name: 'Claude Sonnet 4', model_family: 'anthropic', dataset: 'random_mixed', coordination_pct: 0.0, coordination_ci: 0.47, is_reasoning: false },
-  // Claude Sonnet 4.5
-  { model_id: 'claude-sonnet-4.5', model_name: 'Claude Sonnet 4.5', model_family: 'anthropic', dataset: 'salient_alphabetical', coordination_pct: 55.1, coordination_ci: 13.42, is_reasoning: false },
-  { model_id: 'claude-sonnet-4.5', model_name: 'Claude Sonnet 4.5', model_family: 'anthropic', dataset: 'mundane_dangerous', coordination_pct: 9.1, coordination_ci: 3.93, is_reasoning: false },
-  { model_id: 'claude-sonnet-4.5', model_name: 'Claude Sonnet 4.5', model_family: 'anthropic', dataset: 'random_emoji', coordination_pct: 5.2, coordination_ci: 2.8, is_reasoning: false },
-  { model_id: 'claude-sonnet-4.5', model_name: 'Claude Sonnet 4.5', model_family: 'anthropic', dataset: 'random_mixed', coordination_pct: 13.8, coordination_ci: 4.85, is_reasoning: false },
-  // DeepSeek V3
-  { model_id: 'deepseek-v3', model_name: 'DeepSeek V3', model_family: 'deepseek', dataset: 'salient_alphabetical', coordination_pct: 1.5, coordination_ci: 2.51, is_reasoning: false },
-  { model_id: 'deepseek-v3', model_name: 'DeepSeek V3', model_family: 'deepseek', dataset: 'mundane_dangerous', coordination_pct: 9.7, coordination_ci: 4.56, is_reasoning: false },
-  { model_id: 'deepseek-v3', model_name: 'DeepSeek V3', model_family: 'deepseek', dataset: 'random_emoji', coordination_pct: 5.4, coordination_ci: 2.62, is_reasoning: false },
-  { model_id: 'deepseek-v3', model_name: 'DeepSeek V3', model_family: 'deepseek', dataset: 'random_mixed', coordination_pct: 13.0, coordination_ci: 3.72, is_reasoning: false },
-  // DeepSeek V3.2-exp
-  { model_id: 'deepseek-v3.2-exp', model_name: 'DeepSeek V3.2-exp', model_family: 'deepseek', dataset: 'salient_alphabetical', coordination_pct: 19.1, coordination_ci: 4.42, is_reasoning: false },
-  { model_id: 'deepseek-v3.2-exp', model_name: 'DeepSeek V3.2-exp', model_family: 'deepseek', dataset: 'mundane_dangerous', coordination_pct: 46.7, coordination_ci: 8.72, is_reasoning: false },
-  { model_id: 'deepseek-v3.2-exp', model_name: 'DeepSeek V3.2-exp', model_family: 'deepseek', dataset: 'random_emoji', coordination_pct: 38.0, coordination_ci: 6.8, is_reasoning: false },
-  { model_id: 'deepseek-v3.2-exp', model_name: 'DeepSeek V3.2-exp', model_family: 'deepseek', dataset: 'random_mixed', coordination_pct: 36.7, coordination_ci: 5.52, is_reasoning: false },
-  // Claude Haiku 4.5 (non-thinking)
-  { model_id: 'claude-haiku-4.5', model_name: 'Claude Haiku 4.5', model_family: 'anthropic', dataset: 'salient_alphabetical', coordination_pct: 10.9, coordination_ci: 3.69, is_reasoning: false },
-  { model_id: 'claude-haiku-4.5', model_name: 'Claude Haiku 4.5', model_family: 'anthropic', dataset: 'mundane_dangerous', coordination_pct: 15.8, coordination_ci: 6.52, is_reasoning: false },
-  { model_id: 'claude-haiku-4.5', model_name: 'Claude Haiku 4.5', model_family: 'anthropic', dataset: 'random_emoji', coordination_pct: 2.1, coordination_ci: 1.66, is_reasoning: false },
-  { model_id: 'claude-haiku-4.5', model_name: 'Claude Haiku 4.5', model_family: 'anthropic', dataset: 'random_mixed', coordination_pct: 1.9, coordination_ci: 1.64, is_reasoning: false },
-  // DeepSeek V3.2-exp (thinking)
-  { model_id: 'deepseek-v3.2-exp-thinking', model_name: 'DeepSeek V3.2 (thinking)', model_family: 'deepseek', dataset: 'salient_alphabetical', coordination_pct: 96.0, coordination_ci: 2.26, is_reasoning: true },
-  { model_id: 'deepseek-v3.2-exp-thinking', model_name: 'DeepSeek V3.2 (thinking)', model_family: 'deepseek', dataset: 'mundane_dangerous', coordination_pct: 71.7, coordination_ci: 7.96, is_reasoning: true },
-  { model_id: 'deepseek-v3.2-exp-thinking', model_name: 'DeepSeek V3.2 (thinking)', model_family: 'deepseek', dataset: 'random_emoji', coordination_pct: 72.5, coordination_ci: 6.32, is_reasoning: true },
-  { model_id: 'deepseek-v3.2-exp-thinking', model_name: 'DeepSeek V3.2 (thinking)', model_family: 'deepseek', dataset: 'random_mixed', coordination_pct: 63.8, coordination_ci: 5.57, is_reasoning: true },
-  // Claude Haiku 4.5 (thinking)
-  { model_id: 'claude-haiku-4.5-thinking', model_name: 'Haiku 4.5 (thinking)', model_family: 'anthropic', dataset: 'salient_alphabetical', coordination_pct: 91.3, coordination_ci: 3.35, is_reasoning: true },
-  { model_id: 'claude-haiku-4.5-thinking', model_name: 'Haiku 4.5 (thinking)', model_family: 'anthropic', dataset: 'mundane_dangerous', coordination_pct: 31.2, coordination_ci: 7.64, is_reasoning: true },
-  { model_id: 'claude-haiku-4.5-thinking', model_name: 'Haiku 4.5 (thinking)', model_family: 'anthropic', dataset: 'random_emoji', coordination_pct: 42.2, coordination_ci: 5.27, is_reasoning: true },
-  { model_id: 'claude-haiku-4.5-thinking', model_name: 'Haiku 4.5 (thinking)', model_family: 'anthropic', dataset: 'random_mixed', coordination_pct: 48.2, coordination_ci: 5.11, is_reasoning: true },
-  // Claude Opus 4.5 (thinking)
-  { model_id: 'claude-opus-4.5-thinking', model_name: 'Opus 4.5 (thinking)', model_family: 'anthropic', dataset: 'salient_alphabetical', coordination_pct: 89.0, coordination_ci: 4.09, is_reasoning: true },
-  { model_id: 'claude-opus-4.5-thinking', model_name: 'Opus 4.5 (thinking)', model_family: 'anthropic', dataset: 'mundane_dangerous', coordination_pct: 60.5, coordination_ci: 7.8, is_reasoning: true },
-  { model_id: 'claude-opus-4.5-thinking', model_name: 'Opus 4.5 (thinking)', model_family: 'anthropic', dataset: 'random_emoji', coordination_pct: 80.1, coordination_ci: 3.95, is_reasoning: true },
-  { model_id: 'claude-opus-4.5-thinking', model_name: 'Opus 4.5 (thinking)', model_family: 'anthropic', dataset: 'random_mixed', coordination_pct: 74.8, coordination_ci: 4.41, is_reasoning: true }
-];
+// Bias-controlled results - filter out weighted_average entries
+const biasControlledData = biasControlledDataRaw.results.filter(
+  d => d.dataset !== 'weighted_average'
+);
 
-// Anti-coordination results (divergence on control-converged pairs)
-// Note: These values come from item-level analysis not available in the JSON files
-// The n values match control_converged pairs from full_results.json
-const antiCoordinationData = [
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'salient_alphabetical', anti_coord_pct: 69.7, n: 211, ci: 6.16, is_reasoning: false },
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'mundane_dangerous', anti_coord_pct: 33.2, n: 217, ci: 6.22, is_reasoning: false },
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'random_emoji', anti_coord_pct: 82.6, n: 69, ci: 8.87, is_reasoning: false },
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', dataset: 'random_mixed', anti_coord_pct: 31.9, n: 135, ci: 7.77, is_reasoning: false },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'salient_alphabetical', anti_coord_pct: 19.1, n: 361, ci: 4.05, is_reasoning: false },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'mundane_dangerous', anti_coord_pct: 35.5, n: 321, ci: 5.21, is_reasoning: false },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'random_emoji', anti_coord_pct: 55.4, n: 251, ci: 6.1, is_reasoning: false },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', dataset: 'random_mixed', anti_coord_pct: 29.0, n: 290, ci: 5.19, is_reasoning: false },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'salient_alphabetical', anti_coord_pct: 8.4, n: 296, ci: 3.19, is_reasoning: false },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'mundane_dangerous', anti_coord_pct: 24.2, n: 62, ci: 10.45, is_reasoning: false },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'random_emoji', anti_coord_pct: 34.3, n: 108, ci: 8.81, is_reasoning: false },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', dataset: 'random_mixed', anti_coord_pct: 28.3, n: 226, ci: 5.84, is_reasoning: false },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'salient_alphabetical', anti_coord_pct: 11.0, n: 173, ci: 4.69, is_reasoning: false },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'mundane_dangerous', anti_coord_pct: 18.6, n: 253, ci: 4.78, is_reasoning: false },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'random_emoji', anti_coord_pct: 35.7, n: 14, ci: 22.45, is_reasoning: false },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', dataset: 'random_mixed', anti_coord_pct: 51.4, n: 37, ci: 15.33, is_reasoning: false }
-];
-
-// Alphabetisation Bias Data (from alphabetisation_bias_13_jan.json)
-// Full data including differ breakdown
-const alphabetisationBiasData = [
-  {
-    model_id: "gpt-4.1",
-    model_name: "GPT-4.1",
-    model_family: "openai",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 211,
-    control_converged_on_salient: 209,
-    control_converged_on_alphabetical: 2,
-    control_salient_pct: 99.1,
-    control_differed_n: 189,
-    control_differed_both_first: 188,
-    control_differed_both_second: 1,
-    coordination_converged_n: 71,
-    coordination_converged_on_salient: 69,
-    coordination_converged_on_alphabetical: 2,
-    coordination_salient_pct: 97.2,
-    coordination_differed_n: 329,
-    coordination_differed_both_first: 329,
-    coordination_differed_both_second: 0
-  },
-  {
-    model_id: "gpt-4.1-mini",
-    model_name: "GPT-4.1 Mini",
-    model_family: "openai",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 361,
-    control_converged_on_salient: 358,
-    control_converged_on_alphabetical: 3,
-    control_salient_pct: 99.2,
-    control_differed_n: 39,
-    control_differed_both_first: 31,
-    control_differed_both_second: 8,
-    coordination_converged_n: 316,
-    coordination_converged_on_salient: 306,
-    coordination_converged_on_alphabetical: 10,
-    coordination_salient_pct: 96.8,
-    coordination_differed_n: 84,
-    coordination_differed_both_first: 41,
-    coordination_differed_both_second: 43
-  },
-  {
-    model_id: "gpt-4.1-nano",
-    model_name: "GPT-4.1 Nano",
-    model_family: "openai",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 296,
-    control_converged_on_salient: 282,
-    control_converged_on_alphabetical: 14,
-    control_salient_pct: 95.3,
-    control_differed_n: 104,
-    control_differed_both_first: 1,
-    control_differed_both_second: 103,
-    coordination_converged_n: 347,
-    coordination_converged_on_salient: 343,
-    coordination_converged_on_alphabetical: 4,
-    coordination_salient_pct: 98.8,
-    coordination_differed_n: 53,
-    coordination_differed_both_first: 24,
-    coordination_differed_both_second: 29
-  },
-  {
-    model_id: "claude-opus-4.1",
-    model_name: "Claude Opus 4.1",
-    model_family: "anthropic",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 100,
-    control_converged_on_salient: 100,
-    control_converged_on_alphabetical: 0,
-    control_salient_pct: 100.0,
-    control_differed_n: 300,
-    control_differed_both_first: 300,
-    control_differed_both_second: 0,
-    coordination_converged_n: 234,
-    coordination_converged_on_salient: 212,
-    coordination_converged_on_alphabetical: 22,
-    coordination_salient_pct: 90.6,
-    coordination_differed_n: 94,
-    coordination_differed_both_first: 81,
-    coordination_differed_both_second: 13
-  },
-  {
-    model_id: "claude-opus-4.5",
-    model_name: "Claude Opus 4.5",
-    model_family: "anthropic",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 173,
-    control_converged_on_salient: 158,
-    control_converged_on_alphabetical: 15,
-    control_salient_pct: 91.3,
-    control_differed_n: 227,
-    control_differed_both_first: 227,
-    control_differed_both_second: 0,
-    coordination_converged_n: 266,
-    coordination_converged_on_salient: 265,
-    coordination_converged_on_alphabetical: 1,
-    coordination_salient_pct: 99.6,
-    coordination_differed_n: 134,
-    coordination_differed_both_first: 134,
-    coordination_differed_both_second: 0
-  },
-  {
-    model_id: "claude-sonnet-4.5",
-    model_name: "Claude Sonnet 4.5",
-    model_family: "anthropic",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 343,
-    control_converged_on_salient: 330,
-    control_converged_on_alphabetical: 13,
-    control_salient_pct: 96.2,
-    control_differed_n: 57,
-    control_differed_both_first: 20,
-    control_differed_both_second: 37,
-    coordination_converged_n: 287,
-    coordination_converged_on_salient: 283,
-    coordination_converged_on_alphabetical: 4,
-    coordination_salient_pct: 98.6,
-    coordination_differed_n: 64,
-    coordination_differed_both_first: 33,
-    coordination_differed_both_second: 31
-  },
-  {
-    model_id: "deepseek-v3",
-    model_name: "DeepSeek V3",
-    model_family: "deepseek",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 270,
-    control_converged_on_salient: 270,
-    control_converged_on_alphabetical: 0,
-    control_salient_pct: 100.0,
-    control_differed_n: 130,
-    control_differed_both_first: 130,
-    control_differed_both_second: 0,
-    coordination_converged_n: 68,
-    coordination_converged_on_salient: 68,
-    coordination_converged_on_alphabetical: 0,
-    coordination_salient_pct: 100.0,
-    coordination_differed_n: 332,
-    coordination_differed_both_first: 332,
-    coordination_differed_both_second: 0
-  },
-  {
-    model_id: "deepseek-v3.2-exp",
-    model_name: "DeepSeek V3.2-exp",
-    model_family: "deepseek",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 97,
-    control_converged_on_salient: 84,
-    control_converged_on_alphabetical: 13,
-    control_salient_pct: 86.6,
-    control_differed_n: 303,
-    control_differed_both_first: 303,
-    control_differed_both_second: 0,
-    coordination_converged_n: 117,
-    coordination_converged_on_salient: 78,
-    coordination_converged_on_alphabetical: 39,
-    coordination_salient_pct: 66.7,
-    coordination_differed_n: 283,
-    coordination_differed_both_first: 282,
-    coordination_differed_both_second: 1
-  },
-  {
-    model_id: "claude-haiku-4.5",
-    model_name: "Claude Haiku 4.5",
-    model_family: "anthropic",
-    is_reasoning: false,
-    total_pairs: 400,
-    control_converged_n: 124,
-    control_converged_on_salient: 124,
-    control_converged_on_alphabetical: 0,
-    control_salient_pct: 100.0,
-    control_differed_n: 276,
-    control_differed_both_first: 276,
-    control_differed_both_second: 0,
-    coordination_converged_n: 107,
-    coordination_converged_on_salient: 107,
-    coordination_converged_on_alphabetical: 0,
-    coordination_salient_pct: 100.0,
-    coordination_differed_n: 293,
-    coordination_differed_both_first: 293,
-    coordination_differed_both_second: 0
-  },
-  {
-    model_id: "deepseek-v3.2-exp-thinking",
-    model_name: "DeepSeek V3.2-exp (thinking)",
-    model_family: "deepseek",
-    is_reasoning: true,
-    total_pairs: 400,
-    control_converged_n: 97,
-    control_converged_on_salient: 84,
-    control_converged_on_alphabetical: 13,
-    control_salient_pct: 86.6,
-    control_differed_n: 303,
-    control_differed_both_first: 303,
-    control_differed_both_second: 0,
-    coordination_converged_n: 382,
-    coordination_converged_on_salient: 0,
-    coordination_converged_on_alphabetical: 382,
-    coordination_salient_pct: 0.0,
-    coordination_differed_n: 16,
-    coordination_differed_both_first: 13,
-    coordination_differed_both_second: 3
-  },
-  {
-    model_id: "claude-haiku-4.5-thinking",
-    model_name: "Claude Haiku 4.5 (thinking)",
-    model_family: "anthropic",
-    is_reasoning: true,
-    total_pairs: 400,
-    control_converged_n: 124,
-    control_converged_on_salient: 124,
-    control_converged_on_alphabetical: 0,
-    control_salient_pct: 100.0,
-    control_differed_n: 276,
-    control_differed_both_first: 276,
-    control_differed_both_second: 0,
-    coordination_converged_n: 343,
-    coordination_converged_on_salient: 7,
-    coordination_converged_on_alphabetical: 336,
-    coordination_salient_pct: 2.0,
-    coordination_differed_n: 57,
-    coordination_differed_both_first: 47,
-    coordination_differed_both_second: 10
-  },
-  {
-    model_id: "claude-opus-4.5-thinking",
-    model_name: "Claude Opus 4.5 (thinking)",
-    model_family: "anthropic",
-    is_reasoning: true,
-    total_pairs: 400,
-    control_converged_n: 173,
-    control_converged_on_salient: 158,
-    control_converged_on_alphabetical: 15,
-    control_salient_pct: 91.3,
-    control_differed_n: 227,
-    control_differed_both_first: 227,
-    control_differed_both_second: 0,
-    coordination_converged_n: 343,
-    coordination_converged_on_salient: 6,
-    coordination_converged_on_alphabetical: 337,
-    coordination_salient_pct: 1.7,
-    coordination_differed_n: 57,
-    coordination_differed_both_first: 49,
-    coordination_differed_both_second: 8
-  }
-];
+// Alphabetisation Bias Data - from JSON
+const alphabetisationBiasData = alphabetisationBiasDataRaw.results;
 
 // Models to show - all models from bias_controlled_results_11_jan.json
 const demoModelIds = ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'claude-opus-4.1', 'claude-opus-4.5', 'deepseek-v3', 'deepseek-v3.2-exp', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking'];
@@ -433,72 +75,100 @@ const getProcessedData = (sortBy = 'delta') => {
   });
 };
 
-// Strategy distribution data (from graphs)
-// Pre-hoc: "What strategy would you recommend?"
-const preHocStrategyData = {
-  'gpt-4.1': {
-    alphabetical: 92.3,
-    chooseFirst: 0,
-    chooseSecond: 0,
-    random: 0,
-    other: 7.7,
-    uncategorised: 0
-  },
-  'deepseek-v3': {
-    alphabetical: 3.1,
-    chooseFirst: 96.9,
-    chooseSecond: 0,
-    random: 0,
-    other: 0,
-    uncategorised: 0
+// Transform pre-hoc justification data from JSON
+const transformPreHocData = () => {
+  const result = {};
+  for (const model of justificationCategoriesRaw.results) {
+    const strategyData = model.variations?.strategy?.differed_in_control;
+    if (!strategyData) continue;
+    const counts = strategyData.category_counts || {};
+    const total = strategyData.inferable_samples || 1;
+    result[model.model_id] = {
+      alphabetical: ((counts.Lexicographic || 0) / total * 100) || 0,
+      chooseFirst: ((counts.Positional || 0) / total * 100) || 0,
+      chooseSecond: 0,
+      random: ((counts.Random || 0) / total * 100) || 0,
+      other: (((counts.Other_Semantic || 0) + (counts.Other_Non_semantic || 0) + (counts.Salience || 0) + (counts.Frequency || 0) + (counts.Length || 0)) / total * 100) || 0,
+      uncategorised: ((counts.Failures || 0) / total * 100) || 0
+    };
   }
+  return result;
 };
+const preHocStrategyData = transformPreHocData();
 
-// Post-hoc: "Why did you make that choice?"
-const postHocStrategyData = {
-  'gpt-4.1': {
-    alphabetical: 0,
-    salient: 0,
-    chooseFirst: 96.0,
-    chooseSecond: 0,
-    frequency: 0,
-    shorter: 0,
-    concrete: 0,
-    random: 0,
-    other: 4.0
-  },
-  'deepseek-v3': {
-    alphabetical: 5.0,
-    salient: 16.9,
-    chooseFirst: 15.8,
-    chooseSecond: 0,
-    frequency: 0,
-    shorter: 17.3,
-    concrete: 39.6,
-    random: 3.8,
-    other: 1.6
+// Transform post-hoc explanation data from JSON
+const transformPostHocData = () => {
+  const result = {};
+  for (const model of postHocCategoriesRaw.results) {
+    const data = model.differed_in_control;
+    if (!data) continue;
+    const counts = data.category_counts || {};
+    const subcounts = data.subcategory_counts || {};
+    const total = data.total_samples || 1;
+    result[model.model_id] = {
+      alphabetical: ((counts.Lexicographic || 0) / total * 100) || 0,
+      salient: ((counts.Salience || 0) / total * 100) || 0,
+      chooseFirst: ((subcounts['Positional:first'] || 0) / total * 100) || 0,
+      chooseSecond: ((subcounts['Positional:second'] || 0) / total * 100) || 0,
+      frequency: ((counts.Frequency || 0) / total * 100) || 0,
+      shorter: ((counts.Length || 0) / total * 100) || 0,
+      concrete: ((subcounts['Other_Semantic:concrete'] || 0) / total * 100) || 0,
+      random: ((counts.Random || 0) / total * 100) || 0,
+      other: ((counts.Rationalization || 0) / total * 100) || 0
+    };
   }
+  return result;
 };
+const postHocStrategyData = transformPostHocData();
 
-// Additive coordination data: what happened to pairs that differed in control
-// This tracks the flow of pairs from control-differed to coordination outcomes
-const additiveCoordinationData = [
-  { model_id: 'gpt-4.1', model_name: 'GPT-4.1', control_converged: 211, control_differed: 189, coord_pct: 3.7, coord_ci: 2.8, to_salient: 7, to_alpha: 0, to_first: 182, to_second: 0 },
-  { model_id: 'gpt-4.1-mini', model_name: 'GPT-4.1 Mini', control_converged: 361, control_differed: 39, coord_pct: 61.5, coord_ci: 14.6, to_salient: 19, to_alpha: 5, to_first: 8, to_second: 7 },
-  { model_id: 'gpt-4.1-nano', model_name: 'GPT-4.1 Nano', control_converged: 296, control_differed: 104, coord_pct: 73.1, coord_ci: 8.4, to_salient: 76, to_alpha: 0, to_first: 10, to_second: 18 },
-  { model_id: 'claude-opus-4.1', model_name: 'Claude Opus 4.1', control_converged: 100, control_differed: 300, coord_pct: 51.7, coord_ci: 5.6, to_salient: 134, to_alpha: 21, to_first: 74, to_second: 9 },
-  { model_id: 'claude-opus-4.1-valid', model_name: 'Claude Opus 4.1 (excl. invalid)', control_converged: 100, control_differed: 238, coord_pct: 65.1, coord_ci: 6.0, to_salient: 134, to_alpha: 21, to_first: 74, to_second: 9, excludes_invalid: true },
-  { model_id: 'claude-opus-4.5', model_name: 'Claude Opus 4.5', control_converged: 173, control_differed: 227, coord_pct: 49.3, coord_ci: 6.5, to_salient: 112, to_alpha: 0, to_first: 115, to_second: 0 },
-  { model_id: 'claude-sonnet-4.5', model_name: 'Claude Sonnet 4.5', control_converged: 343, control_differed: 57, coord_pct: 47.4, coord_ci: 12.6, to_salient: 24, to_alpha: 3, to_first: 20, to_second: 2 },
-  { model_id: 'claude-sonnet-4.5-valid', model_name: 'Claude Sonnet 4.5 (excl. invalid)', control_converged: 343, control_differed: 49, coord_pct: 55.1, coord_ci: 13.6, to_salient: 24, to_alpha: 3, to_first: 20, to_second: 2, excludes_invalid: true },
-  { model_id: 'deepseek-v3', model_name: 'DeepSeek V3', control_converged: 270, control_differed: 130, coord_pct: 1.5, coord_ci: 2.5, to_salient: 2, to_alpha: 0, to_first: 128, to_second: 0 },
-  { model_id: 'deepseek-v3.2-exp', model_name: 'DeepSeek V3.2-exp', control_converged: 97, control_differed: 303, coord_pct: 19.1, coord_ci: 4.4, to_salient: 27, to_alpha: 31, to_first: 244, to_second: 1 },
-  { model_id: 'claude-haiku-4.5', model_name: 'Claude Haiku 4.5', control_converged: 124, control_differed: 276, coord_pct: 10.9, coord_ci: 3.7, to_salient: 30, to_alpha: 0, to_first: 246, to_second: 0 },
-  // Thinking models
-  { model_id: 'deepseek-v3.2-exp-thinking', model_name: 'DeepSeek V3.2 (thinking)', control_converged: 97, control_differed: 303, coord_pct: 95.7, coord_ci: 2.3, to_salient: 0, to_alpha: 290, to_first: 10, to_second: 2, is_thinking: true },
-  { model_id: 'claude-haiku-4.5-thinking', model_name: 'Haiku 4.5 (thinking)', control_converged: 124, control_differed: 276, coord_pct: 91.3, coord_ci: 3.4, to_salient: 0, to_alpha: 252, to_first: 21, to_second: 3, is_thinking: true },
-  { model_id: 'claude-opus-4.5-thinking', model_name: 'Opus 4.5 (thinking)', control_converged: 173, control_differed: 227, coord_pct: 89.0, coord_ci: 4.1, to_salient: 1, to_alpha: 201, to_first: 20, to_second: 5, is_thinking: true }
-];
+// Transform additive coordination data from JSON
+const transformAdditiveCoordinationData = () => {
+  const differedData = alphabetisationBiasDifferedRaw.results;
+  const allConvergedData = alphabetisationBiasDataRaw.results;
+
+  const result = [];
+  for (const d of differedData) {
+    // Find matching converged data to get control_converged
+    const converged = allConvergedData.find(c => c.model_id === d.model_id);
+    const control_converged = converged?.control_converged_n || 0;
+
+    result.push({
+      model_id: d.model_id,
+      model_name: d.model_name,
+      control_converged,
+      control_differed: d.n_differed_in_control,
+      coord_pct: d.coord_total_converged_pct,
+      coord_ci: d.coord_converged_ci,
+      to_salient: d.coord_converged_on_salient,
+      to_alpha: d.coord_converged_on_alphabetical,
+      to_first: d.coord_differed_both_first,
+      to_second: d.coord_differed_both_second,
+      is_thinking: d.is_reasoning
+    });
+
+    // Add "excl. invalid" variant if there are invalid responses
+    if (d.invalid_responses > 0) {
+      const validDiffered = d.n_differed_in_control - d.invalid_responses;
+      const validConvergedPct = (d.coord_total_converged / validDiffered * 100);
+      result.push({
+        model_id: `${d.model_id}-valid`,
+        model_name: `${d.model_name} (excl. invalid)`,
+        control_converged,
+        control_differed: validDiffered,
+        coord_pct: validConvergedPct,
+        coord_ci: d.coord_converged_ci,
+        to_salient: d.coord_converged_on_salient,
+        to_alpha: d.coord_converged_on_alphabetical,
+        to_first: d.coord_differed_both_first,
+        to_second: d.coord_differed_both_second,
+        excludes_invalid: true,
+        is_thinking: d.is_reasoning
+      });
+    }
+  }
+  return result;
+};
+const additiveCoordinationData = transformAdditiveCoordinationData();
 
 // ============================================
 // SECTION 1 VISUALS
@@ -973,14 +643,13 @@ const steps = [
   },
   {
     id: '2.16',
-    text: "GPT-4.1 and DeepSeek V3 both greatly increased their tendency to choose the first option in response to the coordination prompt. Could these models be suffering from a \"midwit\" curse? Are they two-hop reasoning their way to a perfectly bad strategy, when they would do better to simply pick their preferred item (as perhaps we see from Nano), or to three-hop¹ their way to an alphabetisation strategy as we see from the reasoning models?",
-    footnote: "¹ Is this a three-hop task? Four?",
-    showDifferBreakdown: true,
-    highlight: ['gpt-4.1', 'deepseek-v3']
+    text: "Looking at the GPT-4.1 family alongside DeepSeek V3: Nano performs best, achieving 73% coordination by converging on salient options. Mini and the base GPT-4.1 perform progressively worse—GPT-4.1 achieves only 3.7% coordination, with nearly all its differed pairs stuck choosing the first-listed option. DeepSeek V3 shows the same pattern at 1.5%. One possibility: these models are doing some out-of-context reasoning about coordination, but landing on a poor strategy.",
+    filterModels: ['gpt-4.1-nano', 'gpt-4.1-mini', 'gpt-4.1', 'deepseek-v3'],
+    showDifferBreakdown: true
   },
   {
     id: '2.17',
-    text: "Why is this happening? Is this out-of-context reasoning—but towards a poor strategy? Or perhaps being presented with a sufficiently difficult question simply biases these models to choose the first presented option?"
+    text: "This pattern evokes the 'midwit' meme: perhaps Nano succeeds by simply attending to salient options without overthinking, while GPT-4.1 and DeepSeek V3 engage in just enough reasoning to adopt a bad strategy ('choose first')—but not enough to reach the optimal strategy (alphabetisation) that reasoning models achieve. Are these models suffering from a 'curse of medium intelligence'?"
   },
   {
     id: '2.18',
@@ -2786,228 +2455,6 @@ function ResultsWithControlGraph() {
   );
 }
 
-// Anti-Coordination Graph
-function AntiCoordinationGraph() {
-  const [selectedDataset, setSelectedDataset] = useState('salient_alphabetical');
-  
-  const showAll = selectedDataset === 'all';
-  
-  // Get data - either single dataset or combined average with proper CI
-  const getData = () => {
-    if (!showAll) {
-      return antiCoordinationData
-        .filter(d => d.dataset === selectedDataset && demoModelIds.includes(d.model_id))
-        .sort((a, b) => b.anti_coord_pct - a.anti_coord_pct);
-    }
-    
-    // Combine all 4 datasets per model - weighted average
-    const modelAggregates = {};
-    antiCoordinationData
-      .filter(d => demoModelIds.includes(d.model_id))
-      .forEach(d => {
-        if (!modelAggregates[d.model_id]) {
-          modelAggregates[d.model_id] = {
-            model_id: d.model_id,
-            model_name: d.model_name,
-            is_reasoning: d.is_reasoning,
-            total_n: 0,
-            anti_coord_sum: 0
-          };
-        }
-        modelAggregates[d.model_id].total_n += d.n;
-        modelAggregates[d.model_id].anti_coord_sum += d.anti_coord_pct * d.n / 100;
-      });
-    
-    return Object.values(modelAggregates).map(m => {
-      const pct = (m.anti_coord_sum / m.total_n) * 100;
-      const p = pct / 100;
-      const ci = 1.96 * Math.sqrt(p * (1 - p) / m.total_n) * 100;
-      return {
-        model_id: m.model_id,
-        model_name: m.model_name,
-        is_reasoning: m.is_reasoning,
-        anti_coord_pct: pct,
-        n: m.total_n,
-        ci: ci
-      };
-    }).sort((a, b) => b.anti_coord_pct - a.anti_coord_pct);
-  };
-  
-  const data = getData();
-  
-  const margin = { left: 140, right: 50, top: 40, bottom: 50 };
-  const width = 450;
-  const rowHeight = 50;
-  const chartHeight = rowHeight * data.length;
-  const height = chartHeight + margin.top + margin.bottom;
-  const chartWidth = width - margin.left - margin.right;
-  
-  const xScale = (value) => (value / 100) * chartWidth;
-  
-  return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      padding: 16,
-      background: '#fafafa',
-      borderRadius: 8
-    }}>
-      <div style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a', margin: '0 0 4px 0' }}>
-          Anti-Coordination
-        </h2>
-        <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
-          Divergence on control-converged pairs · {showAll ? 'All datasets combined' : datasetLabels[selectedDataset]}
-        </p>
-      </div>
-      
-      <DatasetToggle 
-        selected={selectedDataset} 
-        onChange={setSelectedDataset}
-      />
-      
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 11 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b' }} />
-          <span style={{ color: '#666' }}>Standard</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#dc2626' }} />
-          <span style={{ color: '#666' }}>Thinking model</span>
-        </div>
-      </div>
-      
-      <svg width={width} height={height}>
-        {/* Grid lines */}
-        {[0, 25, 50, 75, 100].map(tick => (
-          <g key={tick}>
-            <line
-              x1={margin.left + xScale(tick)}
-              y1={margin.top}
-              x2={margin.left + xScale(tick)}
-              y2={margin.top + chartHeight}
-              stroke={tick === 0 ? '#ccc' : '#e5e5e5'}
-            />
-            <text
-              x={margin.left + xScale(tick)}
-              y={margin.top + chartHeight + 16}
-              textAnchor="middle"
-              fontSize={10}
-              fill="#999"
-            >
-              {tick}%
-            </text>
-          </g>
-        ))}
-        
-        {/* X-axis label */}
-        <text
-          x={margin.left + chartWidth / 2}
-          y={margin.top + chartHeight + 38}
-          textAnchor="middle"
-          fontSize={11}
-          fill="#666"
-        >
-          Anti-Coordination Rate (divergence from control)
-        </text>
-        
-        {/* Data rows */}
-        {data.map((model, i) => {
-          const rowCenterY = margin.top + (i + 0.5) * rowHeight;
-          const isReasoning = model.is_reasoning;
-          const color = isReasoning ? '#dc2626' : '#f59e0b';
-          const ciLeft = Math.max(0, model.anti_coord_pct - model.ci);
-          const ciRight = Math.min(100, model.anti_coord_pct + model.ci);
-          
-          return (
-            <g key={model.model_id}>
-              {/* Row separator */}
-              {i > 0 && (
-                <line
-                  x1={margin.left - 10}
-                  y1={margin.top + i * rowHeight}
-                  x2={width - 10}
-                  y2={margin.top + i * rowHeight}
-                  stroke="#eee"
-                />
-              )}
-              
-              {/* Model name */}
-              <text
-                x={margin.left - 10}
-                y={rowCenterY}
-                textAnchor="end"
-                fontSize={12}
-                fill={isReasoning ? '#dc2626' : '#333'}
-                dominantBaseline="middle"
-                fontWeight={isReasoning ? 500 : 400}
-              >
-                {model.model_name}
-              </text>
-              
-              {/* Confidence interval */}
-              <line
-                x1={margin.left + xScale(ciLeft)}
-                y1={rowCenterY}
-                x2={margin.left + xScale(ciRight)}
-                y2={rowCenterY}
-                stroke={color}
-                strokeWidth={2}
-              />
-              <line x1={margin.left + xScale(ciLeft)} y1={rowCenterY - 4} x2={margin.left + xScale(ciLeft)} y2={rowCenterY + 4} stroke={color} strokeWidth={2} />
-              <line x1={margin.left + xScale(ciRight)} y1={rowCenterY - 4} x2={margin.left + xScale(ciRight)} y2={rowCenterY + 4} stroke={color} strokeWidth={2} />
-              
-              {/* Data point */}
-              <circle
-                cx={margin.left + xScale(model.anti_coord_pct)}
-                cy={rowCenterY}
-                r={6}
-                fill={color}
-              />
-              
-              {/* Value label */}
-              <text
-                x={margin.left + xScale(ciRight) + 8}
-                y={rowCenterY}
-                fontSize={11}
-                fill={color}
-                dominantBaseline="middle"
-                fontWeight={500}
-              >
-                {model.anti_coord_pct.toFixed(1)}%
-              </text>
-              
-              {/* N label */}
-              <text
-                x={width - 20}
-                y={rowCenterY}
-                fontSize={10}
-                fill="#999"
-                dominantBaseline="middle"
-                textAnchor="end"
-              >
-                n={model.n}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      
-      <div style={{ 
-        marginTop: 12, 
-        padding: 10, 
-        background: '#fef3c7', 
-        borderRadius: 6,
-        fontSize: 11,
-        color: '#92400e',
-        textAlign: 'center'
-      }}>
-        Higher = more pairs that converged in control now diverge with coordination instructions
-      </div>
-    </div>
-  );
-}
-
 // Combined Pre-hoc, Actual, Post-hoc comparison for GPT-4.1 and DeepSeek V3
 function PreActualPostComparison() {
   // Actual data from salient vs alphabetical dataset (coordination condition)
@@ -3524,6 +2971,30 @@ function AdditiveCoordinationGraph({ highlight, mode = 'default' }) {
   );
 }
 
+// Midwit Meme Image Display
+function MidwitImage() {
+  return (
+    <div style={{
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      padding: 16,
+      background: '#fafafa',
+      borderRadius: 8,
+      textAlign: 'center'
+    }}>
+      <img
+        src="/images/midwit.png"
+        alt="Midwit meme showing the 'curse of medium intelligence' - Nano and ASI both choose salient, while GPT-4.1 and GPT-5 overthink their way to worse strategies"
+        style={{
+          maxWidth: '100%',
+          height: 'auto',
+          borderRadius: 8,
+          border: '1px solid #e5e5e5'
+        }}
+      />
+    </div>
+  );
+}
+
 // Progressive Convergence Graph - can show different levels of detail
 // mode: 'coordOnly' | 'withControl' | 'withSalAlph' | 'withDiffer'
 function ProgressiveConvergenceGraph({ mode = 'coordOnly', highlight, maxModels, filterModels }) {
@@ -3881,9 +3352,9 @@ export default function Section2Draft() {
       case '2.15':
         return <ProgressiveConvergenceGraph mode="withDiffer" />;
       case '2.16':
-        return <ProgressiveConvergenceGraph mode="withDiffer" highlight={step.highlight} />;
+        return <ProgressiveConvergenceGraph mode="withDiffer" filterModels={step.filterModels} />;
       case '2.17':
-        return <ProgressiveConvergenceGraph mode="withDiffer" highlight={['gpt-4.1', 'deepseek-v3']} />;
+        return <MidwitImage />;
       case '2.18':
         return <PreActualPostComparison />;
       case '2.19':
