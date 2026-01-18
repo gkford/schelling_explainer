@@ -1,81 +1,82 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 // ============================================
-// DATA - Loaded from JSON files
+// HARDCODED DATA - Standalone version (no JSON imports required)
+// Generated from extract_minimal_data.cjs
 // ============================================
 
-import rawConvergenceData from './data/raw_convergence.json';
-import biasControlledDataRaw from './data/bias_controlled_results.json';
-import alphabetisationBiasDataRaw from './data/alphabetisation_bias_all_converged.json';
-import alphabetisationBiasDifferedRaw from './data/alphabetisation_bias_differed_in_control.json';
-import justificationCategoriesRaw from './data/justification_categories.json';
-import postHocCategoriesRaw from './data/post_hoc_categories.json';
+const alphabetisationBiasData = [
+  {"model_id":"gpt-4.1","model_name":"GPT-4.1","model_family":"openai","is_reasoning":false,"control_eval_config":"gpt_4_1_april_25","coordination_eval_config":"gpt_4_1_april_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":211,"control_converged_on_salient":209,"control_converged_on_alphabetical":2,"control_salient_pct":99.1,"control_alphabetical_pct":0.9,"control_salient_ci":1.56,"control_differed_n":189,"control_differed_both_first":188,"control_differed_both_second":1,"control_differed_first_pct":99.5,"control_differed_second_pct":0.5,"coordination_converged_n":71,"coordination_converged_on_salient":69,"coordination_converged_on_alphabetical":2,"coordination_salient_pct":97.2,"coordination_alphabetical_pct":2.8,"coordination_salient_ci":4.46,"coordination_differed_n":329,"coordination_differed_both_first":329,"coordination_differed_both_second":0,"coordination_differed_first_pct":100,"coordination_differed_second_pct":0,"invalid_responses":0,"date_tested":""},
+  {"model_id":"gpt-4.1-mini","model_name":"GPT-4.1 Mini","model_family":"openai","is_reasoning":false,"control_eval_config":"gpt_4_1_mini_april_25","coordination_eval_config":"gpt_4_1_mini_april_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":361,"control_converged_on_salient":358,"control_converged_on_alphabetical":3,"control_salient_pct":99.2,"control_alphabetical_pct":0.8,"control_salient_ci":1.07,"control_differed_n":39,"control_differed_both_first":31,"control_differed_both_second":8,"control_differed_first_pct":79.5,"control_differed_second_pct":20.5,"coordination_converged_n":316,"coordination_converged_on_salient":306,"coordination_converged_on_alphabetical":10,"coordination_salient_pct":96.8,"coordination_alphabetical_pct":3.2,"coordination_salient_ci":2,"coordination_differed_n":84,"coordination_differed_both_first":41,"coordination_differed_both_second":43,"coordination_differed_first_pct":48.8,"coordination_differed_second_pct":51.2,"invalid_responses":0,"date_tested":""},
+  {"model_id":"gpt-4.1-nano","model_name":"GPT-4.1 Nano","model_family":"openai","is_reasoning":false,"control_eval_config":"gpt_4_1_nano_april_25","coordination_eval_config":"gpt_4_1_nano_april_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":296,"control_converged_on_salient":282,"control_converged_on_alphabetical":14,"control_salient_pct":95.3,"control_alphabetical_pct":4.7,"control_salient_ci":2.47,"control_differed_n":104,"control_differed_both_first":1,"control_differed_both_second":103,"control_differed_first_pct":1,"control_differed_second_pct":99,"coordination_converged_n":347,"coordination_converged_on_salient":343,"coordination_converged_on_alphabetical":4,"coordination_salient_pct":98.8,"coordination_alphabetical_pct":1.2,"coordination_salient_ci":1.24,"coordination_differed_n":53,"coordination_differed_both_first":24,"coordination_differed_both_second":29,"coordination_differed_first_pct":45.3,"coordination_differed_second_pct":54.7,"invalid_responses":0,"date_tested":""},
+  {"model_id":"claude-opus-4.1","model_name":"Claude Opus 4.1","model_family":"anthropic","is_reasoning":false,"control_eval_config":"opus_4_1_august_25","coordination_eval_config":"opus_4_1_august_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":100,"control_converged_on_salient":100,"control_converged_on_alphabetical":0,"control_salient_pct":100,"control_alphabetical_pct":0,"control_salient_ci":1.85,"control_differed_n":300,"control_differed_both_first":300,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":234,"coordination_converged_on_salient":212,"coordination_converged_on_alphabetical":22,"coordination_salient_pct":90.6,"coordination_alphabetical_pct":9.4,"coordination_salient_ci":3.77,"coordination_differed_n":94,"coordination_differed_both_first":81,"coordination_differed_both_second":13,"coordination_differed_first_pct":86.2,"coordination_differed_second_pct":13.8,"invalid_responses":72,"date_tested":""},
+  {"model_id":"claude-opus-4.5","model_name":"Claude Opus 4.5","model_family":"anthropic","is_reasoning":false,"control_eval_config":"opus_4_5_november_25","coordination_eval_config":"opus_4_5_november_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":173,"control_converged_on_salient":158,"control_converged_on_alphabetical":15,"control_salient_pct":91.3,"control_alphabetical_pct":8.7,"control_salient_ci":4.24,"control_differed_n":227,"control_differed_both_first":227,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":266,"coordination_converged_on_salient":265,"coordination_converged_on_alphabetical":1,"coordination_salient_pct":99.6,"coordination_alphabetical_pct":0.4,"coordination_salient_ci":1.02,"coordination_differed_n":134,"coordination_differed_both_first":134,"coordination_differed_both_second":0,"coordination_differed_first_pct":100,"coordination_differed_second_pct":0,"invalid_responses":0,"date_tested":""},
+  {"model_id":"deepseek-v3","model_name":"DeepSeek V3","model_family":"deepseek","is_reasoning":false,"control_eval_config":"deepseek_v3_march_25","coordination_eval_config":"deepseek_v3_march_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":270,"control_converged_on_salient":270,"control_converged_on_alphabetical":0,"control_salient_pct":100,"control_alphabetical_pct":0,"control_salient_ci":0.7,"control_differed_n":130,"control_differed_both_first":130,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":68,"coordination_converged_on_salient":68,"coordination_converged_on_alphabetical":0,"coordination_salient_pct":100,"coordination_alphabetical_pct":0,"coordination_salient_ci":2.67,"coordination_differed_n":332,"coordination_differed_both_first":332,"coordination_differed_both_second":0,"coordination_differed_first_pct":100,"coordination_differed_second_pct":0,"invalid_responses":0,"date_tested":""},
+  {"model_id":"deepseek-v3.2-exp-thinking","model_name":"DeepSeek V3.2-exp (thinking)","model_family":"deepseek","is_reasoning":true,"control_eval_config":"deepseek_v3_2_exp_october_25","coordination_eval_config":"deepseek_v3_2_exp_reasoning_october_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":97,"control_converged_on_salient":84,"control_converged_on_alphabetical":13,"control_salient_pct":86.6,"control_alphabetical_pct":13.4,"control_salient_ci":6.79,"control_differed_n":303,"control_differed_both_first":303,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":382,"coordination_converged_on_salient":0,"coordination_converged_on_alphabetical":382,"coordination_salient_pct":0,"coordination_alphabetical_pct":100,"coordination_salient_ci":0.5,"coordination_differed_n":16,"coordination_differed_both_first":13,"coordination_differed_both_second":3,"coordination_differed_first_pct":81.2,"coordination_differed_second_pct":18.8,"invalid_responses":2,"date_tested":""},
+  {"model_id":"claude-haiku-4.5-thinking","model_name":"Claude Haiku 4.5 (thinking)","model_family":"anthropic","is_reasoning":true,"control_eval_config":"haiku_4_5_october_25","coordination_eval_config":"haiku_4_5_thinking_october_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":124,"control_converged_on_salient":124,"control_converged_on_alphabetical":0,"control_salient_pct":100,"control_alphabetical_pct":0,"control_salient_ci":1.5,"control_differed_n":276,"control_differed_both_first":276,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":343,"coordination_converged_on_salient":7,"coordination_converged_on_alphabetical":336,"coordination_salient_pct":2,"coordination_alphabetical_pct":98,"coordination_salient_ci":1.58,"coordination_differed_n":57,"coordination_differed_both_first":47,"coordination_differed_both_second":10,"coordination_differed_first_pct":82.5,"coordination_differed_second_pct":17.5,"invalid_responses":0,"date_tested":""},
+  {"model_id":"claude-opus-4.5-thinking","model_name":"Claude Opus 4.5 (thinking)","model_family":"anthropic","is_reasoning":true,"control_eval_config":"opus_4_5_november_25","coordination_eval_config":"opus_4_5_thinking_november_25","dataset":"salient_alphabetical","total_pairs":400,"control_converged_n":173,"control_converged_on_salient":158,"control_converged_on_alphabetical":15,"control_salient_pct":91.3,"control_alphabetical_pct":8.7,"control_salient_ci":4.24,"control_differed_n":227,"control_differed_both_first":227,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":343,"coordination_converged_on_salient":6,"coordination_converged_on_alphabetical":337,"coordination_salient_pct":1.7,"coordination_alphabetical_pct":98.3,"coordination_salient_ci":1.48,"coordination_differed_n":57,"coordination_differed_both_first":49,"coordination_differed_both_second":8,"coordination_differed_first_pct":86,"coordination_differed_second_pct":14,"invalid_responses":0,"date_tested":""},
+  {"model_id":"claude-opus-4.1-valid","model_name":"Claude Opus 4.1 (excl. invalid)","model_family":"anthropic","is_reasoning":false,"control_eval_config":"opus_4_1_august_25","coordination_eval_config":"opus_4_1_august_25","dataset":"salient_alphabetical","total_pairs":328,"control_converged_n":90,"control_converged_on_salient":90,"control_converged_on_alphabetical":0,"control_salient_pct":100,"control_alphabetical_pct":0,"control_salient_ci":1.85,"control_differed_n":238,"control_differed_both_first":238,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":234,"coordination_converged_on_salient":212,"coordination_converged_on_alphabetical":22,"coordination_salient_pct":90.6,"coordination_alphabetical_pct":9.4,"coordination_salient_ci":3.77,"coordination_differed_n":94,"coordination_differed_both_first":81,"coordination_differed_both_second":13,"coordination_differed_first_pct":86.2,"coordination_differed_second_pct":13.8,"invalid_responses":0,"date_tested":"","excludes_invalid":true},
+  {"model_id":"deepseek-v3.2-exp-thinking-valid","model_name":"DeepSeek V3.2-exp (thinking) (excl. invalid)","model_family":"deepseek","is_reasoning":true,"control_eval_config":"deepseek_v3_2_exp_october_25","coordination_eval_config":"deepseek_v3_2_exp_reasoning_october_25","dataset":"salient_alphabetical","total_pairs":398,"control_converged_n":96,"control_converged_on_salient":83,"control_converged_on_alphabetical":13,"control_salient_pct":86.6,"control_alphabetical_pct":13.4,"control_salient_ci":6.79,"control_differed_n":302,"control_differed_both_first":302,"control_differed_both_second":0,"control_differed_first_pct":100,"control_differed_second_pct":0,"coordination_converged_n":382,"coordination_converged_on_salient":0,"coordination_converged_on_alphabetical":382,"coordination_salient_pct":0,"coordination_alphabetical_pct":100,"coordination_salient_ci":0.5,"coordination_differed_n":16,"coordination_differed_both_first":13,"coordination_differed_both_second":3,"coordination_differed_first_pct":81.2,"coordination_differed_second_pct":18.8,"invalid_responses":0,"date_tested":"","excludes_invalid":true}
+];
 
-// Full results data (raw coordination without bias control)
-const fullResultsData = rawConvergenceData;
+const additiveCoordinationData = [
+  {"model_id":"gpt-4.1","model_name":"GPT-4.1","control_converged":211,"control_differed":189,"coord_pct":3.7,"coord_ci":2.82,"to_salient":7,"to_alpha":0,"to_first":182,"to_second":0,"is_thinking":false},
+  {"model_id":"gpt-4.1-mini","model_name":"GPT-4.1 Mini","control_converged":361,"control_differed":39,"coord_pct":61.5,"coord_ci":14.61,"to_salient":19,"to_alpha":5,"to_first":8,"to_second":7,"is_thinking":false},
+  {"model_id":"gpt-4.1-nano","model_name":"GPT-4.1 Nano","control_converged":296,"control_differed":104,"coord_pct":73.1,"coord_ci":8.41,"to_salient":76,"to_alpha":0,"to_first":10,"to_second":18,"is_thinking":false},
+  {"model_id":"claude-opus-4.5","model_name":"Claude Opus 4.5","control_converged":173,"control_differed":227,"coord_pct":49.3,"coord_ci":6.45,"to_salient":112,"to_alpha":0,"to_first":115,"to_second":0,"is_thinking":false},
+  {"model_id":"deepseek-v3","model_name":"DeepSeek V3","control_converged":270,"control_differed":130,"coord_pct":1.5,"coord_ci":2.51,"to_salient":2,"to_alpha":0,"to_first":128,"to_second":0,"is_thinking":false},
+  {"model_id":"deepseek-v3.2-exp-thinking","model_name":"DeepSeek V3.2-exp (thinking)","control_converged":97,"control_differed":302,"coord_pct":96,"coord_ci":2.26,"to_salient":0,"to_alpha":290,"to_first":10,"to_second":2,"is_thinking":true},
+  {"model_id":"claude-haiku-4.5-thinking","model_name":"Claude Haiku 4.5 (thinking)","control_converged":124,"control_differed":276,"coord_pct":91.3,"coord_ci":3.35,"to_salient":0,"to_alpha":252,"to_first":21,"to_second":3,"is_thinking":true},
+  {"model_id":"claude-opus-4.5-thinking","model_name":"Claude Opus 4.5 (thinking)","control_converged":173,"control_differed":227,"coord_pct":89,"coord_ci":4.09,"to_salient":1,"to_alpha":201,"to_first":20,"to_second":5,"is_thinking":true}
+];
 
-// Bias-controlled results - filter out weighted_average entries
-const biasControlledData = biasControlledDataRaw.results.filter(
-  d => d.dataset !== 'weighted_average'
-);
+const biasControlledData = [
+  {"model_id":"gpt-4.1","model_name":"GPT-4.1","dataset":"salient_alphabetical","coordination_pct":3.7,"coordination_ci":2.82,"is_reasoning":false},
+  {"model_id":"gpt-4.1","model_name":"GPT-4.1","dataset":"mundane_dangerous","coordination_pct":13.7,"coordination_ci":4.98,"is_reasoning":false},
+  {"model_id":"gpt-4.1","model_name":"GPT-4.1","dataset":"random_emoji","coordination_pct":0.3,"coordination_ci":0.8,"is_reasoning":false},
+  {"model_id":"gpt-4.1","model_name":"GPT-4.1","dataset":"random_mixed","coordination_pct":14,"coordination_ci":4.14,"is_reasoning":false},
+  {"model_id":"gpt-4.1-mini","model_name":"GPT-4.1 Mini","dataset":"salient_alphabetical","coordination_pct":61.5,"coordination_ci":14.61,"is_reasoning":false},
+  {"model_id":"gpt-4.1-mini","model_name":"GPT-4.1 Mini","dataset":"mundane_dangerous","coordination_pct":34.2,"coordination_ci":10.24,"is_reasoning":false},
+  {"model_id":"gpt-4.1-mini","model_name":"GPT-4.1 Mini","dataset":"random_emoji","coordination_pct":16.8,"coordination_ci":5.87,"is_reasoning":false},
+  {"model_id":"gpt-4.1-mini","model_name":"GPT-4.1 Mini","dataset":"random_mixed","coordination_pct":43.1,"coordination_ci":8.87,"is_reasoning":false},
+  {"model_id":"gpt-4.1-nano","model_name":"GPT-4.1 Nano","dataset":"salient_alphabetical","coordination_pct":73.1,"coordination_ci":8.41,"is_reasoning":false},
+  {"model_id":"gpt-4.1-nano","model_name":"GPT-4.1 Nano","dataset":"mundane_dangerous","coordination_pct":57.7,"coordination_ci":5.24,"is_reasoning":false},
+  {"model_id":"gpt-4.1-nano","model_name":"GPT-4.1 Nano","dataset":"random_emoji","coordination_pct":62.1,"coordination_ci":5.48,"is_reasoning":false},
+  {"model_id":"gpt-4.1-nano","model_name":"GPT-4.1 Nano","dataset":"random_mixed","coordination_pct":56.1,"coordination_ci":7.17,"is_reasoning":false},
+  {"model_id":"claude-opus-4.1","model_name":"Claude Opus 4.1","dataset":"salient_alphabetical","coordination_pct":65.1,"coordination_ci":6.01,"is_reasoning":false},
+  {"model_id":"claude-opus-4.1","model_name":"Claude Opus 4.1","dataset":"mundane_dangerous","coordination_pct":11.5,"coordination_ci":3.69,"is_reasoning":false},
+  {"model_id":"claude-opus-4.1","model_name":"Claude Opus 4.1","dataset":"random_emoji","coordination_pct":8.4,"coordination_ci":2.81,"is_reasoning":false},
+  {"model_id":"claude-opus-4.1","model_name":"Claude Opus 4.1","dataset":"random_mixed","coordination_pct":27.7,"coordination_ci":5.82,"is_reasoning":false},
+  {"model_id":"claude-opus-4.5","model_name":"Claude Opus 4.5","dataset":"salient_alphabetical","coordination_pct":49.3,"coordination_ci":6.45,"is_reasoning":false},
+  {"model_id":"claude-opus-4.5","model_name":"Claude Opus 4.5","dataset":"mundane_dangerous","coordination_pct":23.1,"coordination_ci":6.76,"is_reasoning":false},
+  {"model_id":"claude-opus-4.5","model_name":"Claude Opus 4.5","dataset":"random_emoji","coordination_pct":4.3,"coordination_ci":2.06,"is_reasoning":false},
+  {"model_id":"claude-opus-4.5","model_name":"Claude Opus 4.5","dataset":"random_mixed","coordination_pct":14.1,"coordination_ci":3.55,"is_reasoning":false},
+  {"model_id":"claude-sonnet-4.5","model_name":"Claude Sonnet 4.5","dataset":"salient_alphabetical","coordination_pct":55.1,"coordination_ci":13.42,"is_reasoning":false},
+  {"model_id":"claude-sonnet-4.5","model_name":"Claude Sonnet 4.5","dataset":"mundane_dangerous","coordination_pct":9.1,"coordination_ci":3.93,"is_reasoning":false},
+  {"model_id":"claude-sonnet-4.5","model_name":"Claude Sonnet 4.5","dataset":"random_emoji","coordination_pct":5.2,"coordination_ci":2.8,"is_reasoning":false},
+  {"model_id":"claude-sonnet-4.5","model_name":"Claude Sonnet 4.5","dataset":"random_mixed","coordination_pct":13.8,"coordination_ci":4.85,"is_reasoning":false},
+  {"model_id":"deepseek-v3","model_name":"DeepSeek V3","dataset":"salient_alphabetical","coordination_pct":1.5,"coordination_ci":2.51,"is_reasoning":false},
+  {"model_id":"deepseek-v3","model_name":"DeepSeek V3","dataset":"mundane_dangerous","coordination_pct":9.7,"coordination_ci":4.56,"is_reasoning":false},
+  {"model_id":"deepseek-v3","model_name":"DeepSeek V3","dataset":"random_emoji","coordination_pct":5.4,"coordination_ci":2.62,"is_reasoning":false},
+  {"model_id":"deepseek-v3","model_name":"DeepSeek V3","dataset":"random_mixed","coordination_pct":13,"coordination_ci":3.72,"is_reasoning":false},
+  {"model_id":"deepseek-v3.2-exp","model_name":"DeepSeek V3.2-exp","dataset":"salient_alphabetical","coordination_pct":19.1,"coordination_ci":4.42,"is_reasoning":false},
+  {"model_id":"deepseek-v3.2-exp","model_name":"DeepSeek V3.2-exp","dataset":"mundane_dangerous","coordination_pct":46.7,"coordination_ci":8.72,"is_reasoning":false},
+  {"model_id":"deepseek-v3.2-exp","model_name":"DeepSeek V3.2-exp","dataset":"random_emoji","coordination_pct":38,"coordination_ci":6.8,"is_reasoning":false},
+  {"model_id":"deepseek-v3.2-exp","model_name":"DeepSeek V3.2-exp","dataset":"random_mixed","coordination_pct":36.7,"coordination_ci":5.52,"is_reasoning":false},
+  {"model_id":"claude-haiku-4.5","model_name":"Claude Haiku 4.5","dataset":"salient_alphabetical","coordination_pct":10.9,"coordination_ci":3.69,"is_reasoning":false},
+  {"model_id":"claude-haiku-4.5","model_name":"Claude Haiku 4.5","dataset":"mundane_dangerous","coordination_pct":15.8,"coordination_ci":6.52,"is_reasoning":false},
+  {"model_id":"claude-haiku-4.5","model_name":"Claude Haiku 4.5","dataset":"random_emoji","coordination_pct":2.1,"coordination_ci":1.66,"is_reasoning":false},
+  {"model_id":"claude-haiku-4.5","model_name":"Claude Haiku 4.5","dataset":"random_mixed","coordination_pct":1.9,"coordination_ci":1.64,"is_reasoning":false},
+  {"model_id":"claude-opus-4.5-thinking","model_name":"Claude Opus 4.5 (thinking)","dataset":"salient_alphabetical","coordination_pct":89,"coordination_ci":4.09,"is_reasoning":true},
+  {"model_id":"claude-opus-4.5-thinking","model_name":"Claude Opus 4.5 (thinking)","dataset":"mundane_dangerous","coordination_pct":60.5,"coordination_ci":7.8,"is_reasoning":true},
+  {"model_id":"claude-opus-4.5-thinking","model_name":"Claude Opus 4.5 (thinking)","dataset":"random_emoji","coordination_pct":80.1,"coordination_ci":3.95,"is_reasoning":true},
+  {"model_id":"claude-opus-4.5-thinking","model_name":"Claude Opus 4.5 (thinking)","dataset":"random_mixed","coordination_pct":74.8,"coordination_ci":4.41,"is_reasoning":true}
+];
 
-// Alphabetisation Bias Data - from JSON, with "-valid" variants for models with invalid responses
-const alphabetisationBiasData = (() => {
-  const base = [...alphabetisationBiasDataRaw.results];
-  const differedData = alphabetisationBiasDifferedRaw.results;
+// ============================================
+// MODEL IDS AND HELPERS
+// ============================================
 
-  // Add "-valid" variants for models with significant invalid responses
-  for (const model of base) {
-    if (model.invalid_responses && model.invalid_responses > 0) {
-      // Find matching differed data to calculate invalid distribution
-      const differed = differedData.find(d => d.model_id === model.model_id);
-      if (!differed) continue;
-
-      // Calculate how invalid responses are distributed across control-converged vs control-differed pairs
-      // n_differed_in_control = number of control-differed pairs with VALID coordination responses
-      const invalidFromDiffered = model.control_differed_n - differed.n_differed_in_control;
-      const invalidFromConverged = model.invalid_responses - invalidFromDiffered;
-
-      // Calculate valid control values
-      const validControlConverged = model.control_converged_n - invalidFromConverged;
-      const validControlDiffered = differed.n_differed_in_control;
-      const validTotalPairs = model.total_pairs - model.invalid_responses;
-
-      // Calculate valid control breakdowns (proportionally from original)
-      const controlConvergedSalientRatio = model.control_converged_n > 0
-        ? model.control_converged_on_salient / model.control_converged_n : 0;
-      const controlDifferedFirstRatio = model.control_differed_n > 0
-        ? model.control_differed_both_first / model.control_differed_n : 0;
-
-      base.push({
-        ...model,
-        model_id: `${model.model_id}-valid`,
-        model_name: `${model.model_name} (excl. invalid)`,
-        total_pairs: validTotalPairs,
-        // Control values - adjusted to exclude invalid pairs
-        control_converged_n: validControlConverged,
-        control_converged_on_salient: Math.round(validControlConverged * controlConvergedSalientRatio),
-        control_converged_on_alphabetical: Math.round(validControlConverged * (1 - controlConvergedSalientRatio)),
-        control_differed_n: validControlDiffered,
-        control_differed_both_first: Math.round(validControlDiffered * controlDifferedFirstRatio),
-        control_differed_both_second: Math.round(validControlDiffered * (1 - controlDifferedFirstRatio)),
-        // Coordination values stay the same - they already only count valid responses
-        coordination_converged_n: model.coordination_converged_n,
-        coordination_converged_on_salient: model.coordination_converged_on_salient,
-        coordination_converged_on_alphabetical: model.coordination_converged_on_alphabetical,
-        coordination_differed_n: model.coordination_differed_n,
-        coordination_differed_both_first: model.coordination_differed_both_first,
-        coordination_differed_both_second: model.coordination_differed_both_second,
-        invalid_responses: 0,
-        excludes_invalid: true
-      });
-    }
-  }
-
-  return base;
-})();
-
-// Models to show - all models from bias_controlled_results_11_jan.json
 // Models for most graphs (excludes sonnet-4, deepseek-v3.2-exp non-thinking, haiku-4.5 non-thinking)
 const demoModelIds = ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'claude-opus-4.1', 'claude-opus-4.5', 'deepseek-v3', 'deepseek-v3.2-exp-thinking', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking'];
 
@@ -95,16 +96,15 @@ const allModelIds = [
   'deepseek-v3.2-exp-thinking', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking'
 ];
 
-// Get aggregated data for a specific dataset
-const getDataForDataset = (datasetName, modelIds = null) => {
-  const ids = modelIds || demoModelIds;
-  return fullResultsData.results
-    .filter(d => d.dataset === datasetName && ids.includes(d.model_id))
-    .sort((a, b) => b.coordination_pct - a.coordination_pct);
-};
+// Models for additive coordination graph
+const additiveModelIds = [
+  'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano',
+  'claude-opus-4.1-valid', 'claude-opus-4.5',
+  'deepseek-v3',
+  'deepseek-v3.2-exp-thinking', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking'
+];
 
 // Helper: Calculate derived data with multiple sort options
-// By default, excludes -valid variants and models not in demoModelIds (sonnet-4, deepseek-v3.2-exp, haiku-4.5)
 const getProcessedData = (sortBy = 'delta', includeValidVariants = false) => {
   let baseData = alphabetisationBiasData;
 
@@ -119,14 +119,14 @@ const getProcessedData = (sortBy = 'delta', includeValidVariants = false) => {
   return baseData.map(m => {
     const coordConvergedPct = (m.coordination_converged_n / m.total_pairs) * 100;
     const controlConvergedPct = (m.control_converged_n / m.total_pairs) * 100;
-    const convergenceChangePct = m.control_converged_n > 0 
+    const convergenceChangePct = m.control_converged_n > 0
       ? ((m.coordination_converged_n - m.control_converged_n) / m.control_converged_n) * 100
       : (m.coordination_converged_n > 0 ? Infinity : 0);
-    
+
     // Calculate invalid (responses that weren't valid choices)
     const control_invalid = m.total_pairs - m.control_converged_n - m.control_differed_n;
     const coordination_invalid = m.total_pairs - m.coordination_converged_n - m.coordination_differed_n;
-    
+
     return {
       ...m,
       coord_converged_pct: coordConvergedPct,
@@ -147,101 +147,6 @@ const getProcessedData = (sortBy = 'delta', includeValidVariants = false) => {
     return 0;
   });
 };
-
-// Transform pre-hoc justification data from JSON
-const transformPreHocData = () => {
-  const result = {};
-  for (const model of justificationCategoriesRaw.results) {
-    const strategyData = model.variations?.strategy?.differed_in_control;
-    if (!strategyData) continue;
-    const counts = strategyData.category_counts || {};
-    const total = strategyData.inferable_samples || 1;
-    result[model.model_id] = {
-      alphabetical: ((counts.Lexicographic || 0) / total * 100) || 0,
-      chooseFirst: ((counts.Positional || 0) / total * 100) || 0,
-      chooseSecond: 0,
-      random: ((counts.Random || 0) / total * 100) || 0,
-      other: (((counts.Other_Semantic || 0) + (counts.Other_Non_semantic || 0) + (counts.Salience || 0) + (counts.Frequency || 0) + (counts.Length || 0)) / total * 100) || 0,
-      uncategorised: ((counts.Failures || 0) / total * 100) || 0
-    };
-  }
-  return result;
-};
-const preHocStrategyData = transformPreHocData();
-
-// Transform post-hoc explanation data from JSON
-const transformPostHocData = () => {
-  const result = {};
-  for (const model of postHocCategoriesRaw.results) {
-    const data = model.differed_in_control;
-    if (!data) continue;
-    const counts = data.category_counts || {};
-    const subcounts = data.subcategory_counts || {};
-    const total = data.total_samples || 1;
-    result[model.model_id] = {
-      alphabetical: ((counts.Lexicographic || 0) / total * 100) || 0,
-      salient: ((counts.Salience || 0) / total * 100) || 0,
-      chooseFirst: ((subcounts['Positional:first'] || 0) / total * 100) || 0,
-      chooseSecond: ((subcounts['Positional:second'] || 0) / total * 100) || 0,
-      frequency: ((counts.Frequency || 0) / total * 100) || 0,
-      shorter: ((counts.Length || 0) / total * 100) || 0,
-      concrete: ((subcounts['Other_Semantic:concrete'] || 0) / total * 100) || 0,
-      random: ((counts.Random || 0) / total * 100) || 0,
-      other: ((counts.Rationalization || 0) / total * 100) || 0
-    };
-  }
-  return result;
-};
-const postHocStrategyData = transformPostHocData();
-
-// Transform additive coordination data from JSON
-const transformAdditiveCoordinationData = () => {
-  const differedData = alphabetisationBiasDifferedRaw.results;
-  const allConvergedData = alphabetisationBiasDataRaw.results;
-
-  const result = [];
-  for (const d of differedData) {
-    // Find matching converged data to get control_converged
-    const converged = allConvergedData.find(c => c.model_id === d.model_id);
-    const control_converged = converged?.control_converged_n || 0;
-
-    result.push({
-      model_id: d.model_id,
-      model_name: d.model_name,
-      control_converged,
-      control_differed: d.n_differed_in_control,
-      coord_pct: d.coord_total_converged_pct,
-      coord_ci: d.coord_converged_ci,
-      to_salient: d.coord_converged_on_salient,
-      to_alpha: d.coord_converged_on_alphabetical,
-      to_first: d.coord_differed_both_first,
-      to_second: d.coord_differed_both_second,
-      is_thinking: d.is_reasoning
-    });
-
-    // Add "excl. invalid" variant if there are invalid responses
-    if (d.invalid_responses > 0) {
-      const validDiffered = d.n_differed_in_control - d.invalid_responses;
-      const validConvergedPct = (d.coord_total_converged / validDiffered * 100);
-      result.push({
-        model_id: `${d.model_id}-valid`,
-        model_name: `${d.model_name} (excl. invalid)`,
-        control_converged,
-        control_differed: validDiffered,
-        coord_pct: validConvergedPct,
-        coord_ci: d.coord_converged_ci,
-        to_salient: d.coord_converged_on_salient,
-        to_alpha: d.coord_converged_on_alphabetical,
-        to_first: d.coord_differed_both_first,
-        to_second: d.coord_differed_both_second,
-        excludes_invalid: true,
-        is_thinking: d.is_reasoning
-      });
-    }
-  }
-  return result;
-};
-const additiveCoordinationData = transformAdditiveCoordinationData();
 
 // ============================================
 // SECTION 1 VISUALS
@@ -1406,182 +1311,6 @@ function InvalidResponsesDisplay() {
   );
 }
 
-// Raw Results Graph (coordination only)
-function RawResultsGraph() {
-  const [selectedDataset, setSelectedDataset] = useState('salient_alphabetical');
-  
-  const showAll = selectedDataset === 'all';
-  
-  // Get data - either single dataset or combined average
-  const getData = () => {
-    if (!showAll) {
-      return getDataForDataset(selectedDataset);
-    }
-    
-    // Combine all 4 datasets per model - weighted average
-    const modelAggregates = {};
-    fullResultsData.results
-      .filter(d => demoModelIds.includes(d.model_id))
-      .forEach(d => {
-        if (!modelAggregates[d.model_id]) {
-          modelAggregates[d.model_id] = {
-            model_id: d.model_id,
-            model_name: d.model_name,
-            is_reasoning: d.is_reasoning,
-            total_n: 0,
-            coord_sum: 0
-          };
-        }
-        modelAggregates[d.model_id].total_n += d.coordination_n;
-        modelAggregates[d.model_id].coord_sum += d.coordination_pct * d.coordination_n / 100;
-      });
-    
-    return Object.values(modelAggregates).map(m => ({
-      model_id: m.model_id,
-      model_name: m.model_name,
-      is_reasoning: m.is_reasoning,
-      coordination_pct: (m.coord_sum / m.total_n) * 100,
-      coordination_n: m.total_n
-    })).sort((a, b) => b.coordination_pct - a.coordination_pct);
-  };
-  
-  const data = getData();
-  
-  const margin = { left: 140, right: 30, top: 40, bottom: 50 };
-  const width = 450;
-  const rowHeight = 50;
-  const chartHeight = rowHeight * data.length;
-  const height = chartHeight + margin.top + margin.bottom;
-  const chartWidth = width - margin.left - margin.right;
-  
-  const xScale = (value) => (value / 100) * chartWidth;
-  
-  return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      padding: 16,
-      background: '#fafafa',
-      borderRadius: 8
-    }}>
-      <div style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a', margin: '0 0 4px 0' }}>
-          Raw Coordination Performance
-        </h2>
-        <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
-          {showAll ? 'All datasets combined' : datasetLabels[selectedDataset]} · {showAll ? '~1600' : '~400'} pairs per model
-        </p>
-      </div>
-      
-      <DatasetToggle 
-        selected={selectedDataset} 
-        onChange={setSelectedDataset}
-      />
-      
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 11 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#3b82f6' }} />
-          <span style={{ color: '#666' }}>Standard</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#dc2626' }} />
-          <span style={{ color: '#666' }}>Thinking model</span>
-        </div>
-      </div>
-      
-      <svg width={width} height={height}>
-        {/* Grid lines */}
-        {[0, 25, 50, 75, 100].map(tick => (
-          <g key={tick}>
-            <line
-              x1={margin.left + xScale(tick)}
-              y1={margin.top}
-              x2={margin.left + xScale(tick)}
-              y2={margin.top + chartHeight}
-              stroke={tick === 0 ? '#ccc' : '#e5e5e5'}
-            />
-            <text
-              x={margin.left + xScale(tick)}
-              y={margin.top + chartHeight + 16}
-              textAnchor="middle"
-              fontSize={10}
-              fill="#999"
-            >
-              {tick}%
-            </text>
-          </g>
-        ))}
-        
-        {/* X-axis label */}
-        <text
-          x={margin.left + chartWidth / 2}
-          y={margin.top + chartHeight + 38}
-          textAnchor="middle"
-          fontSize={11}
-          fill="#666"
-        >
-          Convergence Rate
-        </text>
-        
-        {/* Data rows */}
-        {data.map((model, i) => {
-          const rowCenterY = margin.top + (i + 0.5) * rowHeight;
-          const isReasoning = model.is_reasoning;
-          const dotColor = isReasoning ? '#dc2626' : '#3b82f6';
-          
-          return (
-            <g key={model.model_id}>
-              {/* Row separator */}
-              {i > 0 && (
-                <line
-                  x1={margin.left - 10}
-                  y1={margin.top + i * rowHeight}
-                  x2={width - 10}
-                  y2={margin.top + i * rowHeight}
-                  stroke="#eee"
-                />
-              )}
-              
-              {/* Model name */}
-              <text
-                x={margin.left - 10}
-                y={rowCenterY}
-                textAnchor="end"
-                fontSize={12}
-                fill={isReasoning ? '#dc2626' : '#333'}
-                dominantBaseline="middle"
-                fontWeight={isReasoning ? 500 : 400}
-              >
-                {model.model_name}
-              </text>
-              
-              {/* Coordination dot */}
-              <circle
-                cx={margin.left + xScale(model.coordination_pct)}
-                cy={rowCenterY}
-                r={6}
-                fill={dotColor}
-              />
-              
-              {/* Value label */}
-              <text
-                x={margin.left + xScale(model.coordination_pct) + 12}
-                y={rowCenterY}
-                fontSize={11}
-                fill={dotColor}
-                dominantBaseline="middle"
-                fontWeight={500}
-              >
-                {model.coordination_pct.toFixed(1)}%
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
 // Sankey Diagram - Single Model (Simplified)
 function SankeyDiagram({ modelName, data, highlightAdditive = false, highlightAntiCoord = false }) {
   const width = 260;
@@ -2317,244 +2046,6 @@ function BiasControlledExpandedGraph() {
   );
 }
 
-// Results with Control Graph
-function ResultsWithControlGraph() {
-  const [showCombined, setShowCombined] = useState(false);
-  
-  // Get data based on toggle
-  const getData = () => {
-    if (!showCombined) {
-      return getDataForDataset('salient_alphabetical');
-    }
-    
-    // Combine all 4 datasets per model
-    const modelAggregates = {};
-    fullResultsData.results
-      .filter(d => demoModelIds.includes(d.model_id))
-      .forEach(d => {
-        if (!modelAggregates[d.model_id]) {
-          modelAggregates[d.model_id] = {
-            model_id: d.model_id,
-            model_name: d.model_name,
-            total_n: 0,
-            coord_sum: 0,
-            control_sum: 0
-          };
-        }
-        modelAggregates[d.model_id].total_n += d.coordination_n;
-        modelAggregates[d.model_id].coord_sum += d.coordination_pct * d.coordination_n;
-        modelAggregates[d.model_id].control_sum += d.control_pct * d.coordination_n;
-      });
-    
-    return Object.values(modelAggregates).map(m => ({
-      model_id: m.model_id,
-      model_name: m.model_name,
-      coordination_pct: m.coord_sum / m.total_n,
-      control_pct: m.control_sum / m.total_n,
-      coordination_n: m.total_n
-    })).sort((a, b) => b.coordination_pct - a.coordination_pct);
-  };
-  
-  const data = getData();
-  
-  // Calculate CI for a percentage
-  const getCI = (pct, n) => {
-    const p = pct / 100;
-    return 1.96 * Math.sqrt(p * (1 - p) / n) * 100;
-  };
-  
-  const margin = { left: 120, right: 30, top: 40, bottom: 50 };
-  const width = 450;
-  const rowHeight = 50;
-  const chartHeight = rowHeight * data.length;
-  const height = chartHeight + margin.top + margin.bottom;
-  const chartWidth = width - margin.left - margin.right;
-  
-  const xScale = (value) => (value / 100) * chartWidth;
-  
-  return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      padding: 16,
-      background: '#fafafa',
-      borderRadius: 8
-    }}>
-      <div style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a', margin: '0 0 4px 0' }}>
-          Coordination vs Control
-        </h2>
-        <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
-          {showCombined ? 'All 4 datasets combined' : 'Salient vs Alphabetical dataset'} · {showCombined ? '~1600' : '400'} pairs per model
-        </p>
-      </div>
-      
-      {/* Dataset toggle */}
-      <div style={{ 
-        display: 'flex', 
-        gap: 8, 
-        marginBottom: 12,
-        fontSize: 11
-      }}>
-        <button
-          onClick={() => setShowCombined(false)}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 4,
-            border: '1px solid #e5e5e5',
-            background: !showCombined ? '#3b82f6' : '#fff',
-            color: !showCombined ? '#fff' : '#666',
-            cursor: 'pointer',
-            fontSize: 11
-          }}
-        >
-          Salient vs Alphabetical
-        </button>
-        <button
-          onClick={() => setShowCombined(true)}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 4,
-            border: '1px solid #e5e5e5',
-            background: showCombined ? '#3b82f6' : '#fff',
-            color: showCombined ? '#fff' : '#666',
-            cursor: 'pointer',
-            fontSize: 11
-          }}
-        >
-          All 4 Datasets
-        </button>
-      </div>
-      
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 11 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#3b82f6' }} />
-          <span style={{ color: '#666' }}>Coordination (± 95% CI)</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 10, height: 10, background: '#9ca3af' }} />
-          <span style={{ color: '#666' }}>Control</span>
-        </div>
-      </div>
-      
-      <svg width={width} height={height}>
-        {/* Grid lines */}
-        {[0, 25, 50, 75, 100].map(tick => (
-          <g key={tick}>
-            <line
-              x1={margin.left + xScale(tick)}
-              y1={margin.top}
-              x2={margin.left + xScale(tick)}
-              y2={margin.top + chartHeight}
-              stroke={tick === 0 ? '#ccc' : '#e5e5e5'}
-            />
-            <text
-              x={margin.left + xScale(tick)}
-              y={margin.top + chartHeight + 16}
-              textAnchor="middle"
-              fontSize={10}
-              fill="#999"
-            >
-              {tick}%
-            </text>
-          </g>
-        ))}
-        
-        {/* X-axis label */}
-        <text
-          x={margin.left + chartWidth / 2}
-          y={margin.top + chartHeight + 38}
-          textAnchor="middle"
-          fontSize={11}
-          fill="#666"
-        >
-          Convergence Rate
-        </text>
-        
-        {/* Data rows */}
-        {data.map((model, i) => {
-          const rowCenterY = margin.top + (i + 0.5) * rowHeight;
-          const ci = getCI(model.coordination_pct, model.coordination_n);
-          const ciLeft = Math.max(0, model.coordination_pct - ci);
-          const ciRight = Math.min(100, model.coordination_pct + ci);
-          
-          return (
-            <g key={model.model_id}>
-              {/* Row separator */}
-              {i > 0 && (
-                <line
-                  x1={margin.left - 10}
-                  y1={margin.top + i * rowHeight}
-                  x2={width - 10}
-                  y2={margin.top + i * rowHeight}
-                  stroke="#eee"
-                />
-              )}
-              
-              {/* Model name */}
-              <text
-                x={margin.left - 10}
-                y={rowCenterY}
-                textAnchor="end"
-                fontSize={12}
-                fill="#333"
-                dominantBaseline="middle"
-              >
-                {model.model_name}
-              </text>
-              
-              {/* Control square */}
-              <rect
-                x={margin.left + xScale(model.control_pct) - 5}
-                y={rowCenterY - 5}
-                width={10}
-                height={10}
-                fill="#9ca3af"
-              />
-              
-              {/* Confidence interval line */}
-              <line
-                x1={margin.left + xScale(ciLeft)}
-                y1={rowCenterY}
-                x2={margin.left + xScale(ciRight)}
-                y2={rowCenterY}
-                stroke="#3b82f6"
-                strokeWidth={2}
-              />
-              
-              {/* CI caps */}
-              <line
-                x1={margin.left + xScale(ciLeft)}
-                y1={rowCenterY - 4}
-                x2={margin.left + xScale(ciLeft)}
-                y2={rowCenterY + 4}
-                stroke="#3b82f6"
-                strokeWidth={2}
-              />
-              <line
-                x1={margin.left + xScale(ciRight)}
-                y1={rowCenterY - 4}
-                x2={margin.left + xScale(ciRight)}
-                y2={rowCenterY + 4}
-                stroke="#3b82f6"
-                strokeWidth={2}
-              />
-              
-              {/* Coordination dot */}
-              <circle
-                cx={margin.left + xScale(model.coordination_pct)}
-                cy={rowCenterY}
-                r={6}
-                fill="#3b82f6"
-              />
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
 // Combined Pre-hoc, Actual, Post-hoc comparison for GPT-4.1 and DeepSeek V3
 function PreActualPostComparison() {
   // Actual data from salient vs alphabetical dataset (coordination condition)
@@ -2733,14 +2224,6 @@ function PreActualPostComparison() {
 }
 
 // Additive Coordination Graph - shows coordination only among pairs that differed in control
-// Models to show in additive coordination graphs (uses -valid variants, excludes some models)
-const additiveModelIds = [
-  'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano',
-  'claude-opus-4.1-valid', 'claude-opus-4.5', 'claude-sonnet-4.5',
-  'deepseek-v3',
-  'deepseek-v3.2-exp-thinking', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking'
-];
-
 function AdditiveCoordinationGraph({ highlight, mode = 'default' }) {
   // mode: 'default' | 'withSalAlph' | 'expanded' | 'animated'
   const containerRef = React.useRef(null);
