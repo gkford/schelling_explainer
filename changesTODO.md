@@ -1,3 +1,9 @@
 - Okay the initial animation is a bit lame. Try this. Remove the text from the bottom. Move the two emojis (the gat and the fountain) a little further apart from each other vertically. Then instead of the two people sort of wiggling closer to the fountain in a mirror, lets do this. They start both on the left and right, but in the middle vertically. Then one goes up while the other goes down (in a vertical line). Then the opposite, one goes down in line with the fountain, while the other goes up in line with the gate. Then they go back to the middle. Then finally they both make a beeline for the fountain, meeting just above it diagonally to the left and right (this is currently correct how it is). 
 
-- The animation on 1.3needs to be much shorter. Let's make it go only for about 
+- The animation on 1.3 needs to be much shorter. Let's make it go only for about 3.5 seconds of scrolling, before locking onto the red attack frame. Then it should stay on that frame for 3.5 seconds only.
+
+- for each of the animated slides we need to define a static version of them. So for
+
+
+We need a TLDR at the start I think.
+

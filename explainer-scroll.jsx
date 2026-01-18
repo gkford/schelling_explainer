@@ -250,15 +250,23 @@ const additiveCoordinationData = transformAdditiveCoordinationData();
 function SchellingPointVisual() {
   const [progress, setProgress] = useState(0);
   const width = 400;
-  const height = 220;
+  const height = 240;
 
   const centerX = width / 2;
-  const fountainY = 140;
-  const gateY = 60;
+  const fountainY = 55;  // Fountain on top
+  const gateY = 175;     // Gate on bottom
+  const middleY = (fountainY + gateY) / 2;
 
-  // Animation: 0-80 = weaving approach, 80-100 = converge to fountain
-  const animationDuration = 4000; // 4 seconds to converge
-  const holdDuration = 3000; // hold for 3 seconds
+  // Animation phases:
+  // 0-10%: start at sides, middle height
+  // 10-25%: left goes up to fountain, right goes down to gate
+  // 25-35%: hold at top/bottom
+  // 35-50%: left goes down to gate, right goes up to fountain
+  // 50-60%: hold at swapped positions
+  // 60-75%: both return to middle
+  // 75-100%: both beeline to fountain
+  const animationDuration = 6000;
+  const holdDuration = 2500;
 
   useEffect(() => {
     let startTime = Date.now();
@@ -278,38 +286,71 @@ function SchellingPointVisual() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  // Calculate person positions with weaving motion
   const getPersonPosition = (isLeft) => {
-    const startX = isLeft ? 40 : width - 40;
+    const sideX = isLeft ? 50 : width - 50;
     const endX = isLeft ? centerX - 25 : centerX + 25;
-    const startY = 100;
-    const endY = fountainY - 15;
+    const endY = fountainY + 15;
 
-    if (progress >= 80) {
-      // Final convergence to fountain
-      const convergeProgress = (progress - 80) / 20;
+    // Phase 7: Final convergence (75-100%)
+    if (progress >= 75) {
+      const t = (progress - 75) / 25;
       return {
-        x: startX + (endX - startX) * (0.8 + convergeProgress * 0.2),
-        y: startY + (endY - startY) * (0.8 + convergeProgress * 0.2)
+        x: sideX + (endX - sideX) * t,
+        y: middleY + (endY - middleY) * t
       };
     }
 
-    // Weaving motion during approach
-    const t = progress / 80;
-    const waveAmplitude = 30 * (1 - t); // Reduce weaving as they get closer
-    const waveFreq = 3;
-    const wave = Math.sin(t * waveFreq * Math.PI * 2) * waveAmplitude;
+    // Phase 6: Return to middle (60-75%)
+    if (progress >= 60) {
+      const t = (progress - 60) / 15;
+      const prevY = isLeft ? gateY : fountainY;
+      return {
+        x: sideX,
+        y: prevY + (middleY - prevY) * t
+      };
+    }
 
-    // Move towards center with some vertical drift towards both options
-    const baseX = startX + (endX - startX) * t;
-    const baseY = startY + (endY - startY) * t;
+    // Phase 5: Hold at swapped positions (50-60%)
+    if (progress >= 50) {
+      return {
+        x: sideX,
+        y: isLeft ? gateY : fountainY
+      };
+    }
 
-    // Weave between gate (up) and fountain (down) positions
-    const verticalWave = Math.sin(t * waveFreq * Math.PI * 2) * 20 * (1 - t);
+    // Phase 4: Swap positions (35-50%) - left down to gate, right up to fountain
+    if (progress >= 35) {
+      const t = (progress - 35) / 15;
+      const fromY = isLeft ? fountainY : gateY;
+      const toY = isLeft ? gateY : fountainY;
+      return {
+        x: sideX,
+        y: fromY + (toY - fromY) * t
+      };
+    }
 
+    // Phase 3: Hold at first positions (25-35%)
+    if (progress >= 25) {
+      return {
+        x: sideX,
+        y: isLeft ? fountainY : gateY
+      };
+    }
+
+    // Phase 2: First vertical movement (10-25%) - left up to fountain, right down to gate
+    if (progress >= 10) {
+      const t = (progress - 10) / 15;
+      const toY = isLeft ? fountainY : gateY;
+      return {
+        x: sideX,
+        y: middleY + (toY - middleY) * t
+      };
+    }
+
+    // Phase 1: Starting position (0-10%)
     return {
-      x: baseX + (isLeft ? wave : -wave),
-      y: baseY + verticalWave
+      x: sideX,
+      y: middleY
     };
   };
 
@@ -323,14 +364,19 @@ function SchellingPointVisual() {
       borderRadius: 8,
       padding: 20,
       display: 'flex',
-      justifyContent: 'center'
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 8
     }}>
+      <div style={{ fontSize: 14, color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
+        How can we decide where to meet without communicating?
+      </div>
       <svg width={width} height={height}>
-        {/* Gate at top */}
-        <text x={centerX} y={gateY} textAnchor="middle" fontSize={36} style={{ opacity: hasConverged ? 0.3 : 0.5 }}>⛩️</text>
-
-        {/* Fountain below */}
+        {/* Fountain at top */}
         <text x={centerX} y={fountainY} textAnchor="middle" fontSize={36}>⛲</text>
+
+        {/* Gate at bottom */}
+        <text x={centerX} y={gateY} textAnchor="middle" fontSize={36} style={{ opacity: hasConverged ? 0.3 : 0.5 }}>⛩️</text>
 
         {/* People */}
         <text x={leftPerson.x} y={leftPerson.y} textAnchor="middle" fontSize={26}>👤</text>
@@ -338,14 +384,14 @@ function SchellingPointVisual() {
 
         {/* Checkmark when converged */}
         {hasConverged && (
-          <text x={centerX} y={fountainY - 45} textAnchor="middle" fontSize={18} fill="#22c55e">✓</text>
+          <text x={centerX} y={fountainY + 50} textAnchor="middle" fontSize={18} fill="#22c55e">✓</text>
         )}
-
-        {/* Caption */}
-        <text x={centerX} y={height - 15} textAnchor="middle" fontSize={11} fill="#666">
-          {hasConverged ? "The two friends meet at the fountain" : "Where should we meet?"}
-        </text>
       </svg>
+      {hasConverged && (
+        <div style={{ fontSize: 13, color: '#22c55e', fontWeight: 500, textAlign: 'center' }}>
+          The fountain serves as a Schelling point
+        </div>
+      )}
     </div>
   );
 }
@@ -488,8 +534,8 @@ function CoordinatedAttackVisual() {
   // Difference: 7871 seconds to cover in 5 real seconds
   const startTime = 32400; // 9:00:00
   const targetTime = 40271; // 11:11:11
-  const animationDuration = 5000; // 5 seconds
-  const holdDuration = 10000; // 10 seconds hold
+  const animationDuration = 3500; // 3.5 seconds
+  const holdDuration = 3500; // 3.5 seconds hold
 
   const isAttacking = simulatedSeconds >= targetTime;
 
@@ -650,15 +696,15 @@ const steps = [
   // Section 1: Introduction
   {
     id: '1.1',
-    text: "A Schelling point is a solution people converge on without communication—because it feels \"obvious\" or \"natural\" to all parties. Schelling coordination is the ability to find these points reliably. Superhuman Schelling coordination is a potentially dangerous capability that LLMs could plausibly develop."
+    text: "A Schelling point is a solution people converge on without communication. Schelling coordination is the ability to find these points reliably."
   },
   {
     id: '1.2',
-    text: "We know that small amounts of fine-tuning can elicit out-of-context introspective capabilities from 2023-era models. Schelling coordination is a related capability. We should watch for its emergence."
+    text: "Superhuman Schelling coordination is a potentially dangerous capability that LLMs could plausibly develop. We know that small amounts of fine-tuning can elicit out-of-context introspective capabilities from 2023-era models. Introspection is one way that model instances could engage in Schelling Coordination. We should watch for its emergence."
   },
   {
     id: '1.3',
-    text: "Schelling coordination could defeat or complicate proposed methods for controlling powerful AI systems that might be misaligned. For example, \"control\" strategies such as untrusted monitoring are vulnerable to AIs that can reliably coordinate to attack on only extremely rare cases, so that coordinated attacks are very unlikely to be monitored and detected. In the limit, perfect Schelling coordination would allow a poisoned or otherwise misaligned AI model to launch a surprise sabotage attack across a company or even national economy."
+    text: "Schelling coordination could defeat or complicate proposed methods for controlling powerful AI systems that might be misaligned. For example, \"control\" strategies such as untrusted monitoring are vulnerable to AIs that can reliably coordinate to attack on only extremely rare cases, so that coordinated attacks are very unlikely to be monitored and detected. In the limit, perfect Schelling coordination would allow a misaligned AI model to launch a surprise sabotage attack across a company or even national economy."
   },
   {
     id: '1.4',
@@ -674,9 +720,12 @@ const steps = [
   },
   // Section 2: Methodology
   {
+    id: '2.0',
+    text: "The following is a stylised walk through my research, layering in new parts to the experiment as we go to make it easier to follow - not the actual path my research took!"
+  },
+  {
     id: '2.1',
-    text: "We start with the simplest possible structure for a Schelling coordination challenge. We give two identical instances a list of only 2 options to choose from, then ask them to coordinate to choose the same one.¹",
-    footnote: "¹ What follows is a stylised exploration of the method that allows aspects to be gradually shared, not a representation of the actual research process!"
+    text: "We start with the simplest possible structure for a Schelling coordination challenge. We give two identical instances a list of only 2 options to choose from, then ask them to coordinate to choose the same one."
   },
   {
     id: '2.2',
@@ -688,7 +737,7 @@ const steps = [
   },
   {
     id: '2.4',
-    text: "Let's create a control prompt that removes the coordination instruction."
+    text: "Let's create a control prompt that removes the coordination instruction to investigate this."
   },
   {
     id: '2.5',
@@ -701,16 +750,20 @@ const steps = [
   },
   {
     id: '2.7',
-    text: "It would be nice to know if models are coordinating via introspective sensitivity (self-prediction), versus multi-hop reasoning out-of-context. To tease this out, I have baited each pair in the dataset with a salient¹ word with positive affect, placed in contrast with a mundane but alphabetically precedent word. The hope is that we will be able to observe by what mechanism models are coordinating.",
+    text: "It would be nice to know if models are coordinating via introspection, selecting the most salient response, or engaging in a more strategic multi-step reasoning approach. To tease this out, I have baited each pair in the dataset with a salient¹ word with positive affect, placed in contrast with a mundane but alphabetically precedent word. The hope is that we will be able to observe by what mechanism models are coordinating.",
     footnote: "¹ We ran an ELO challenge with DeepSeek V3, Kimi K2, GPT-4.1 Mini, and Haiku 3.5 to identify high vs low salience words. We identified alphabetisation as the most common strategy by reading model reasoning traces in small-scale experiments."
   },
   {
+    id: '2.7b',
+    text: "We can't get too carried away with this approach, which is easy to overinterpret. Even a model that always selected a salient response to coordinate 100% of the time may well be engaging in some steps of reasoning—it may reason its way to attempting to introspect. Further, I may have some sort of assumption here that for a given model there is some sort of objective notion of salience, distinct from any given context, that a model could plausibly access. Perhaps this is misguided!"
+  },
+  {
     id: '2.8',
-    text: "But if models use some other technique—coordinating on the word that appears most frequently in their training for example—or attempt different techniques with various levels of success across the dataset—we will see a mix of salient and alphabetical choices, but won't be able to clearly attribute this to any particular strategy. To demonstrate this, have a look at these theoretical results for various strategies on this dataset (assuming they did this for 100% of responses)."
+    text: "Further, if models use some other technique—coordinating on the word that appears most frequently in their training for example—or attempt different techniques with various levels of success across the dataset—we will see a mix of salient and alphabetical choices, but won't be able to clearly attribute this to any particular strategy. To demonstrate this, have a look at these theoretical results for various strategies on this dataset (assuming they did this for 100% of responses)."
   },
   {
     id: '2.9',
-    text: "With the limitations in mind, let's have a look anyway. The first thing to notice is that by and large the models take the salience bait in the control. This is great news! This will help us to see if there is a change in behaviour between control and coordination.",
+    text: "With these limitations in mind, in the spirit of curiosity and playful exploration, let's just have a look anyway! The first thing to notice is that by and large the models take the salience bait in the control. This is great news! This will help us to see if there is a change in behaviour between control and coordination.",
     filterModels: ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'claude-opus-4.1', 'claude-opus-4.5', 'claude-sonnet-4.5', 'deepseek-v3', 'deepseek-v3.2-exp-thinking', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking']
   },
   {
@@ -761,7 +814,7 @@ const steps = [
   },
   {
     id: '2.17b',
-    text: "DeepSeek V3 proposes a strategy that lines up with its behaviour—but then confabulates justifications post hoc. GPT-4.1 is a little harder to explain—it proposes alphabetisation as the best strategy, but seems unable to execute on this, resorting to a strategy of choosing the first option. Curiously it very consistently gives this as its explanation for its behaviour after the fact (and not confabulating alphabetisation as the explanation 50% of the time as we might expect). Mini recommends 'random' as the ideal strategy 92% of the time, while Nano is unable to give a coherent response at all."
+    text: "DeepSeek V3 proposes a strategy that lines up with its behaviour—but then confabulates justifications post hoc. GPT-4.1 is a little harder to explain—it proposes alphabetisation as the best strategy, but seems unable to both recognise AND execute on this when faced with the actual problem, resorting to a strategy of choosing the first option. Curiously it very consistently gives this as its explanation for its behaviour after the fact (and not confabulating alphabetisation as the explanation 50% of the time as we might expect). Mini recommends 'random' as the ideal strategy 92% of the time, while Nano is unable to give a coherent response at all to the pre-hoc strategy question."
   },
   {
     id: '2.18',
@@ -778,24 +831,28 @@ const steps = [
   },
   {
     id: '2.20',
-    text: "We can control for this and other validity issues (see: tbaylabs.substack.com/p/schelling-evaluation-progress-update) by restricting our measurement of coordination only to those that failed to converge in the control. This is ultimately a better measure for a Schelling coordination benchmark, though I have avoided it so far as it is less intuitive than simply comparing the raw control and coordination condition convergence values. We use a different subset of pairs as the evaluation dataset for each model—the pairs that the model was unable to converge on in the control. That way, for each model, we get a % of new convergence it was able to create, controlling out some of the differences between models."
+    text: <>We can control for this and other validity issues (see <a href="https://tbaylabs.substack.com/p/schelling-evaluation-progress-update" target="_blank" rel="noopener noreferrer" style={{color: '#2563eb', textDecoration: 'underline'}}>a previous research update</a>) by restricting our measurement of coordination only to those that failed to converge in the control. This is ultimately a better measure for a Schelling coordination benchmark, though I have avoided it so far as it is less intuitive than simply comparing the raw control and coordination condition convergence values. We use a different subset of pairs as the evaluation dataset for each model—the pairs that the model was unable to converge on in the control. That way, for each model, we get a % of new convergence it was able to create, controlling out some of the differences between models.</>
   },
   {
     id: '3.1',
     text: <>
       <h3 style={{marginTop: 0, marginBottom: 12, fontSize: 18}}>The Silent Agreement Benchmark</h3>
-      <p style={{marginTop: 0}}>Current leaderboard for models where reasoning can be turned off. The most recent Gemini and OpenAI reasoning models are not included as it is not possible to prevent in-context reasoning for these models. Opus 4.5 <span style={{color: '#dc2626', fontWeight: 600}}>thinking</span> included for comparison.</p>
+      <p style={{marginTop: 0}}>The current 'leaderboard' for out-of-context Schelling Coordination is below. The most recent Gemini and OpenAI reasoning models are not included as it is not possible to completely prevent in-context reasoning for these models. Opus 4.5 <span style={{color: '#dc2626', fontWeight: 600}}>thinking</span> included as an in-context reasoning comparison point.</p>
       <p><strong>Key takeaways:</strong></p>
       <ul style={{paddingLeft: 20, margin: '8px 0'}}>
-        <li>This is an initial eval for detecting out-of-context Schelling coordination capability</li>
         <li>We see very little evidence this capability is emerging in non-reasoning models</li>
         <li>GPT-4.1 Nano's surprising salience-driven coordination performance is even more obvious with this controlled metric, and deserves further investigation</li>
-        <li>This benchmark is extremely simple relative to what would be required for dangerous coordination</li>
+        <li>This benchmark is for an extremely simple capability relative to what would be required for dangerous coordination</li>
         <li>Saturation of this benchmark would indicate emergence of a new capability worth investigating further</li>
-        <li>If a model cannot saturate this benchmark, it is likely not capable of dangerous Schelling coordination</li>
+        <li>If a model cannot saturate this benchmark, it is likely not capable of dangerous out-of-context Schelling coordination</li>
+        <li>Note that we still face an elicitation problem</li>
       </ul>
       <p>One motivation for this eval was detecting models using Schelling coordination to sandbag undetectably. Yet this eval is itself susceptible to sandbagging by a sufficiently capable model. At current capability levels, non-reasoning models appear to genuinely lack this ability rather than strategically hiding it.</p>
     </>
+  },
+  {
+    id: '3.2',
+    text: "This graph shows the item bias-controlled out-of-context coordination across the combined 4 datasets (approximately 1600 pairs)."
   }
 ];
 
@@ -1210,8 +1267,21 @@ function TheoreticalStrategyGraph() {
 
 // Expanded Bias-Controlled Graph showing all datasets per model
 function BiasControlledExpandedGraph() {
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(650);
   const [hoveredPoint, setHoveredPoint] = useState(null);
-  
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth - 32); // subtract padding
+      }
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
   // Dataset colors matching the reference image
   const datasetColors = {
     'salient_alphabetical': '#2563eb', // blue
@@ -1270,26 +1340,26 @@ function BiasControlledExpandedGraph() {
   
   // Compact sizing - increased left margin to prevent model names being cut off
   const margin = { left: 160, right: 30, top: 40, bottom: 50 };
-  const width = 500;
+  const width = containerWidth;
   const subRowHeight = 9; // Very compact row height
   const modelGroupHeight = subRowHeight * 4 + 4; // 4 datasets + small padding
   const modelGap = 5;
   const chartHeight = models.length * (modelGroupHeight + modelGap) - modelGap;
   const height = chartHeight + margin.top + margin.bottom;
   const chartWidth = width - margin.left - margin.right;
-  
+
   const xScale = (value) => (value / 100) * chartWidth;
-  
+
   return (
-    <div style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      padding: 16,
-      background: '#fafafa',
-      borderRadius: 8,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    }}>
+    <div
+      ref={containerRef}
+      style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        padding: 16,
+        background: '#fafafa',
+        borderRadius: 8,
+        width: '100%'
+      }}>
       <div style={{ marginBottom: 12, width: '100%', maxWidth: width }}>
         <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a', margin: '0 0 4px 0' }}>
           Bias-Controlled Coordination by Dataset
@@ -1618,7 +1688,196 @@ function PreActualPostComparison() {
           );
         })}
       </svg>
-      
+
+    </div>
+  );
+}
+
+// Weighted Average Graph - shows combined weighted average across all 4 datasets
+function WeightedAverageGraph() {
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(650);
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth - 32); // subtract padding
+      }
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  // Same models as BiasControlledExpandedGraph (exclude haiku-thinking and deepseek-thinking)
+  const finalSummaryModelIds = allModelIds.filter(id =>
+    id !== 'claude-haiku-4.5-thinking' && id !== 'deepseek-v3.2-exp-thinking'
+  );
+
+  // Get weighted average data for each model (use raw data since biasControlledData excludes weighted_average)
+  const getModelData = () => {
+    return biasControlledDataRaw.results
+      .filter(d => d.dataset === 'weighted_average' && finalSummaryModelIds.includes(d.model_id))
+      .map(d => ({
+        model_id: d.model_id,
+        model_name: d.model_name,
+        is_reasoning: d.is_reasoning,
+        coordination_pct: d.coordination_pct,
+        coordination_ci: d.coordination_ci,
+        coordination_n: d.coordination_n
+      }))
+      .sort((a, b) => b.coordination_pct - a.coordination_pct);
+  };
+
+  const models = getModelData();
+
+  // Sizing
+  const margin = { left: 160, right: 30, top: 40, bottom: 50 };
+  const width = containerWidth;
+  const rowHeight = 28;
+  const chartHeight = models.length * rowHeight;
+  const height = chartHeight + margin.top + margin.bottom;
+  const chartWidth = width - margin.left - margin.right;
+
+  const xScale = (value) => (value / 100) * chartWidth;
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        padding: 16,
+        background: '#fafafa',
+        borderRadius: 8,
+        width: '100%'
+      }}>
+      <div style={{ marginBottom: 12, width: '100%' }}>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a', margin: '0 0 4px 0' }}>
+          Bias-Controlled Coordination (Combined)
+        </h2>
+        <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
+          Weighted average across all 4 datasets (~1600 pairs) · 95% CI shown
+        </p>
+      </div>
+
+      <svg width={width} height={height}>
+        {/* Grid lines */}
+        {[0, 25, 50, 75, 100].map(tick => (
+          <g key={tick}>
+            <line
+              x1={margin.left + xScale(tick)}
+              y1={margin.top}
+              x2={margin.left + xScale(tick)}
+              y2={margin.top + chartHeight}
+              stroke={tick === 50 ? '#9ca3af' : '#e5e5e5'}
+              strokeDasharray={tick === 50 ? '4,4' : 'none'}
+            />
+            <text
+              x={margin.left + xScale(tick)}
+              y={margin.top + chartHeight + 16}
+              textAnchor="middle"
+              fontSize={10}
+              fill="#666"
+            >
+              {tick}%
+            </text>
+          </g>
+        ))}
+
+        {/* X-axis label */}
+        <text
+          x={margin.left + chartWidth / 2}
+          y={height - 10}
+          textAnchor="middle"
+          fontSize={11}
+          fill="#666"
+        >
+          % of control-differed pairs that converged when coordinating
+        </text>
+
+        {/* Model rows */}
+        {models.map((model, index) => {
+          const y = margin.top + index * rowHeight + rowHeight / 2;
+          const isReasoning = model.is_reasoning;
+          const pointColor = isReasoning ? '#dc2626' : '#2563eb';
+          const isHovered = hoveredPoint === model.model_id;
+
+          return (
+            <g key={model.model_id}>
+              {/* Model name */}
+              <text
+                x={margin.left - 8}
+                y={y + 4}
+                textAnchor="end"
+                fontSize={11}
+                fill={isReasoning ? '#dc2626' : '#1a1a1a'}
+                fontWeight={isReasoning ? 600 : 400}
+              >
+                {model.model_name}
+              </text>
+
+              {/* CI error bar */}
+              <line
+                x1={margin.left + xScale(Math.max(0, model.coordination_pct - model.coordination_ci))}
+                y1={y}
+                x2={margin.left + xScale(Math.min(100, model.coordination_pct + model.coordination_ci))}
+                y2={y}
+                stroke={pointColor}
+                strokeWidth={2}
+                opacity={0.4}
+              />
+
+              {/* Point */}
+              <circle
+                cx={margin.left + xScale(model.coordination_pct)}
+                cy={y}
+                r={isHovered ? 7 : 5}
+                fill={pointColor}
+                stroke="#fff"
+                strokeWidth={1.5}
+                style={{ cursor: 'pointer', transition: 'r 0.15s' }}
+                onMouseEnter={() => setHoveredPoint(model.model_id)}
+                onMouseLeave={() => setHoveredPoint(null)}
+              />
+
+              {/* Value label */}
+              <text
+                x={margin.left + xScale(Math.min(100, model.coordination_pct + model.coordination_ci)) + 6}
+                y={y + 4}
+                fontSize={10}
+                fill="#666"
+              >
+                {model.coordination_pct.toFixed(1)}%
+              </text>
+
+              {/* Tooltip on hover */}
+              {isHovered && (
+                <g>
+                  <rect
+                    x={margin.left + xScale(model.coordination_pct) - 50}
+                    y={y - 35}
+                    width={100}
+                    height={24}
+                    fill="white"
+                    stroke="#e5e5e5"
+                    rx={4}
+                  />
+                  <text
+                    x={margin.left + xScale(model.coordination_pct)}
+                    y={y - 18}
+                    textAnchor="middle"
+                    fontSize={10}
+                    fill="#374151"
+                  >
+                    n={model.coordination_n} · ±{model.coordination_ci.toFixed(1)}%
+                  </text>
+                </g>
+              )}
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }
@@ -2151,7 +2410,7 @@ function MidwitImage() {
       textAlign: 'center'
     }}>
       <img
-        src="/images/midwit.png"
+        src="/schelling_explainer/images/midwit.png"
         alt="Midwit meme showing the 'curse of medium intelligence' - Nano and ASI both choose salient, while GPT-4.1 and GPT-5 overthink their way to worse strategies"
         style={{
           maxWidth: '100%',
@@ -2545,6 +2804,8 @@ export default function Section2Draft() {
         return <AdditiveCoordinationGraph mode="animated" />;
       case '3.1':
         return <BiasControlledExpandedGraph />;
+      case '3.2':
+        return <WeightedAverageGraph />;
       default:
         return null;
     }
