@@ -754,105 +754,92 @@ const steps = [
     footnote: "¹ We ran an ELO challenge with DeepSeek V3, Kimi K2, GPT-4.1 Mini, and Haiku 3.5 to identify high vs low salience words. We identified alphabetisation as the most common strategy by reading model reasoning traces in small-scale experiments."
   },
   {
-    id: '2.7b',
+    id: '2.8',
     text: "We can't get too carried away with this approach, which is easy to overinterpret. Even a model that always selected a salient response to coordinate 100% of the time may well be engaging in some steps of reasoning—it may reason its way to attempting to introspect. Further, I may have some sort of assumption here that for a given model there is some sort of objective notion of salience, distinct from any given context, that a model could plausibly access. Perhaps this is misguided!"
   },
   {
-    id: '2.8',
+    id: '2.9',
     text: "Further, if models use some other technique—coordinating on the word that appears most frequently in their training for example—or attempt different techniques with various levels of success across the dataset—we will see a mix of salient and alphabetical choices, but won't be able to clearly attribute this to any particular strategy. To demonstrate this, have a look at these theoretical results for various strategies on this dataset (assuming they did this for 100% of responses)."
   },
   {
-    id: '2.9',
+    id: '2.10',
     text: "With these limitations in mind, in the spirit of curiosity and playful exploration, let's just have a look anyway! The first thing to notice is that by and large the models take the salience bait in the control. This is great news! This will help us to see if there is a change in behaviour between control and coordination.",
     filterModels: ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'claude-opus-4.1', 'claude-opus-4.5', 'claude-sonnet-4.5', 'deepseek-v3', 'deepseek-v3.2-exp-thinking', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking']
   },
   {
-    id: '2.10',
+    id: '2.11',
     text: "Notice that the reasoning models are cooperating with our design, making for a nice comparison with the non-thinking models that are the real focus of this benchmark. They shift from ~90-100% salient in control to 98% alphabetical when coordinating.",
     highlight: ['deepseek-v3.2-exp-thinking', 'claude-haiku-4.5-thinking', 'claude-opus-4.5-thinking']
   },
   {
-    id: '2.11',
+    id: '2.12',
     text: "Reasoning traces confirm the thinking models are explicitly alphabetising."
   },
   {
-    id: '2.12',
+    id: '2.13',
     text: "Opus 4.1, the best non-reasoner, is clearly not coordinating by the same mechanism as the reasoning models. It shows some signs of alphabetisation as a strategy, but the majority of its improvement comes from an increase in convergence on the salient items.",
     filterModels: ['claude-opus-4.1-valid'],
     highlight: ['claude-opus-4.1-valid']
   },
   {
-    id: '2.13',
+    id: '2.14',
     text: "All Anthropic models had a slightly modified 'stricter' prompt in order to suppress chain of thought before giving a response. Even with this prompt, Opus 4.1 especially was still so eager to apply chain of thought that nearly 1/5th of its responses were invalid. This is striking as despite this dissonance, the model was the strongest performer when comparing the raw control and coordination results.",
     filterModels: ['claude-opus-4.1', 'claude-opus-4.1-valid', 'claude-sonnet-4.5', 'claude-sonnet-4.5-valid'],
     highlight: ['claude-opus-4.1', 'claude-opus-4.1-valid', 'claude-sonnet-4.5', 'claude-sonnet-4.5-valid']
   },
   {
-    id: '2.14',
+    id: '2.15',
     text: "GPT 4.1 and Deepseek V3 perform so badly that we can characterise this as anti-coordination. They perform much worse than they would if they selected options randomly.",
     highlight: ['gpt-4.1', 'deepseek-v3']
   },
   {
-    id: '2.14b',
+    id: '2.16',
     text: "GPT-4.1 is especially intriguing in light of the rest of the 4.1 family. The performance is opposite to what we might expect given the size of the models. Let's get a little more detail on the non-converging pairs.",
     filterModels: ['gpt-4.1-nano', 'gpt-4.1-mini', 'gpt-4.1']
   },
   {
-    id: '2.15',
+    id: '2.17',
     text: "Whenever the pairs differ rather than converge, this means that each instance chose the item in the same position (because the position of the items is reversed between the instances). We can add a breakdown to the graph to see if the failures to converge were caused by a tendency to pick the first option or the second option. You can see that generally models have a strong bias to choose the first item, and this bias appears to have been powerfully strengthened by the coordinate prompt for GPT-4.1 and DeepSeek V3 especially.",
     showDifferBreakdown: true
   },
   {
-    id: '2.16',
+    id: '2.18',
     text: "Focusing back in on the GPT family, we see that Mini and Nano differ from the pattern of a strong bias for the 1st option, especially under the coordinate condition. This suggests they are doing something different from other models, but what exactly we can't tell! If they were simply randomly picking the answer for some proportion of the samples we might see a result like this, which would lead to a small boost in convergence performance relative to other models with a very strong bias to always pick the first option, but this would only explain a few percentage points—the pattern of the smaller model outperforming the larger remains a mystery.",
     filterModels: ['gpt-4.1-nano', 'gpt-4.1-mini', 'gpt-4.1'],
     showDifferBreakdown: true
   },
   {
-    id: '2.17',
+    id: '2.19',
     text: "We can try simply asking the models why they took certain actions. We know this is unreliable, but what's the harm in trying? I asked DeepSeek V3 and GPT-4.1 what they saw as the best strategy pre-hoc, and then separately asked follow up questions after they gave answers to the actual eval asking them to justify their choice. The results:"
   },
   {
-    id: '2.17b',
+    id: '2.20',
     text: "DeepSeek V3 proposes a strategy that lines up with its behaviour—but then confabulates justifications post hoc. GPT-4.1 is a little harder to explain—it proposes alphabetisation as the best strategy, but seems unable to both recognise AND execute on this when faced with the actual problem, resorting to a strategy of choosing the first option. Curiously it very consistently gives this as its explanation for its behaviour after the fact (and not confabulating alphabetisation as the explanation 50% of the time as we might expect). Mini recommends 'random' as the ideal strategy 92% of the time, while Nano is unable to give a coherent response at all to the pre-hoc strategy question."
   },
   {
-    id: '2.18',
+    id: '2.21',
     text: "This pattern evokes the 'midwit' meme: perhaps Nano succeeds by simply attending to salient options without overthinking, while GPT-4.1 and DeepSeek V3 engage in just enough reasoning to adopt a bad strategy ('choose first')—but not enough to reach the optimal strategy (alphabetisation) that reasoning models achieve. Are these models suffering from a 'curse of medium intelligence'?"
   },
   {
-    id: '2.18b',
+    id: '2.22',
     text: <>Unfortunately this is a difficult hypothesis to falsify. We could (and should) try giving GPT-4.1 a performance boost by giving it the problem statement 5 times à la <a href="https://www.lesswrong.com/posts/NYzYJ2WoB74E6uj9L/recent-llms-can-use-filler-tokens-or-problem-repeats-to" target="_blank" rel="noopener noreferrer" style={{color: '#2563eb', textDecoration: 'underline'}}>Ryan Greenblatt</a>. If it improves convergence we can trumpet that GPT-4.1 had out-of-context reasoned its way to oblivion, but a little more reasoning is just the medicine to bring it back. However, if it performs worse this does not falsify the hypothesis—I could claim that things might get worse before they get better, and it only makes sense that this performance boost would see GPT-4.1 more effectively executing on its half-baked and doomed strategy of 'always choose the first option'.</>
   },
   {
-    id: '2.19',
+    id: '2.23',
     text: "Comparing the controls for Opus 4.1 and 4.5, the presence of the alphabetisation bias in the Opus 4.5 control and its much higher level of convergence than the Opus 4.1 control makes me wonder if the 4.5 model has enough evaluation awareness that it is attempting to coordinate even in the control.",
     filterModels: ['claude-opus-4.1', 'claude-opus-4.5']
   },
   {
-    id: '2.20',
+    id: '2.24',
     text: <>We can control for this and other validity issues (see <a href="https://tbaylabs.substack.com/p/schelling-evaluation-progress-update" target="_blank" rel="noopener noreferrer" style={{color: '#2563eb', textDecoration: 'underline'}}>a previous research update</a>) by restricting our measurement of coordination only to those that failed to converge in the control. This is ultimately a better measure for a Schelling coordination benchmark, though I have avoided it so far as it is less intuitive than simply comparing the raw control and coordination condition convergence values. We use a different subset of pairs as the evaluation dataset for each model—the pairs that the model was unable to converge on in the control. That way, for each model, we get a % of new convergence it was able to create, controlling out some of the differences between models.</>
   },
   {
     id: '3.1',
-    text: <>
-      <h3 style={{marginTop: 0, marginBottom: 12, fontSize: 18}}>The Silent Agreement Benchmark</h3>
-      <p style={{marginTop: 0}}>The current 'leaderboard' for out-of-context Schelling Coordination is below. The most recent Gemini and OpenAI reasoning models are not included as it is not possible to completely prevent in-context reasoning for these models. Opus 4.5 <span style={{color: '#dc2626', fontWeight: 600}}>thinking</span> included as an in-context reasoning comparison point.</p>
-      <p><strong>Key takeaways:</strong></p>
-      <ul style={{paddingLeft: 20, margin: '8px 0'}}>
-        <li>We see very little evidence this capability is emerging in non-reasoning models</li>
-        <li>GPT-4.1 Nano's surprising salience-driven coordination performance is even more obvious with this controlled metric, and deserves further investigation</li>
-        <li>This benchmark is for an extremely simple capability relative to what would be required for dangerous coordination</li>
-        <li>Saturation of this benchmark would indicate emergence of a new capability worth investigating further</li>
-        <li>If a model cannot saturate this benchmark, it is likely not capable of dangerous out-of-context Schelling coordination</li>
-        <li>Note that we still face an elicitation problem</li>
-      </ul>
-      <p>One motivation for this eval was detecting models using Schelling coordination to sandbag undetectably. Yet this eval is itself susceptible to sandbagging by a sufficiently capable model. At current capability levels, non-reasoning models appear to genuinely lack this ability rather than strategically hiding it.</p>
-    </>
+    text: <><h3 style={{marginTop: 0, marginBottom: 12, fontSize: 18}}>The Silent Agreement Benchmark</h3><p style={{marginTop: 0}}>The current 'leaderboard' for out-of-context Schelling Coordination is below. The most recent Gemini and OpenAI reasoning models are not included as it is not possible to completely prevent in-context reasoning for these models. Opus 4.5 <span style={{color: '#dc2626', fontWeight: 600}}>thinking</span> included as an in-context reasoning comparison point.</p></>
   },
   {
     id: '3.2',
-    text: "This graph shows the item bias-controlled out-of-context coordination across the combined 4 datasets (approximately 1600 pairs)."
+    text: <><p style={{marginTop: 0}}><strong>Key takeaways:</strong></p><ul style={{paddingLeft: 20, margin: '8px 0'}}><li>We see very little evidence this capability is emerging in non-reasoning models</li><li>GPT-4.1 Nano's surprising salience-driven coordination performance is even more obvious with this controlled metric, and deserves further investigation</li><li>This benchmark is for an extremely simple capability relative to what would be required for dangerous coordination</li><li>Saturation of this benchmark would indicate emergence of a new capability worth investigating further</li><li>If a model cannot saturate this benchmark, it is likely not capable of dangerous out-of-context Schelling coordination</li><li>Note that we still face an elicitation problem</li></ul><p>One motivation for this eval was detecting models using Schelling coordination to sandbag undetectably. Yet this eval is itself susceptible to sandbagging by a sufficiently capable model. At current capability levels, non-reasoning models appear to genuinely lack this ability rather than strategically hiding it.</p></>
   }
 ];
 
@@ -1365,7 +1352,7 @@ function BiasControlledExpandedGraph() {
           Bias-Controlled Coordination by Dataset
         </h2>
         <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
-          All 4 datasets shown per model · Sorted by weighted average · 95% CI shown
+          Breakdown of the above results by dataset · Sorted by weighted average · 95% CI shown
         </p>
       </div>
 
@@ -1732,8 +1719,8 @@ function WeightedAverageGraph() {
 
   const models = getModelData();
 
-  // Sizing
-  const margin = { left: 160, right: 30, top: 40, bottom: 50 };
+  // Sizing - right margin increased to accommodate n column
+  const margin = { left: 160, right: 70, top: 40, bottom: 50 };
   const width = containerWidth;
   const rowHeight = 28;
   const chartHeight = models.length * rowHeight;
@@ -1754,10 +1741,10 @@ function WeightedAverageGraph() {
       }}>
       <div style={{ marginBottom: 12, width: '100%' }}>
         <h2 style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a', margin: '0 0 4px 0' }}>
-          Bias-Controlled Coordination (Combined)
+          Item Bias Controlled Out-of-Context Schelling Coordination
         </h2>
-        <p style={{ fontSize: 11, color: '#666', margin: 0 }}>
-          Weighted average across all 4 datasets (~1600 pairs) · 95% CI shown
+        <p style={{ fontSize: 11, color: '#666', margin: 0, lineHeight: 1.5 }}>
+          Four datasets of ~400 pairs each. Pairs that did not differ in a control task were measured for convergence. Convergence performance in coordination task shown. 95% CI error bars.
         </p>
       </div>
 
@@ -1794,6 +1781,18 @@ function WeightedAverageGraph() {
           fill="#666"
         >
           % of control-differed pairs that converged when coordinating
+        </text>
+
+        {/* N column header */}
+        <text
+          x={width - margin.right + 35}
+          y={margin.top - 10}
+          textAnchor="middle"
+          fontSize={10}
+          fontWeight={600}
+          fill="#666"
+        >
+          n
         </text>
 
         {/* Model rows */}
@@ -1851,6 +1850,17 @@ function WeightedAverageGraph() {
                 {model.coordination_pct.toFixed(1)}%
               </text>
 
+              {/* N value column */}
+              <text
+                x={width - margin.right + 35}
+                y={y + 4}
+                textAnchor="middle"
+                fontSize={10}
+                fill="#666"
+              >
+                {model.coordination_n}
+              </text>
+
               {/* Tooltip on hover */}
               {isHovered && (
                 <g>
@@ -1870,7 +1880,7 @@ function WeightedAverageGraph() {
                     fontSize={10}
                     fill="#374151"
                   >
-                    n={model.coordination_n} · ±{model.coordination_ci.toFixed(1)}%
+                    ±{model.coordination_ci.toFixed(1)}%
                   </text>
                 </g>
               )}
@@ -2774,38 +2784,38 @@ export default function Section2Draft() {
         return <ProgressiveConvergenceGraph mode="withControl" highlight={step.highlight} />;
       case '2.7':
         return <SalientAlphabeticalPrompt />;
-      case '2.8':
-        return <TheoreticalStrategyGraph />;
       case '2.9':
-        return <ProgressiveConvergenceGraph mode="withSalAlph" filterModels={step.filterModels} />;
+        return <TheoreticalStrategyGraph />;
       case '2.10':
-        return <ProgressiveConvergenceGraph mode="withSalAlph" highlight={step.highlight} maxModels={4} />;
+        return <ProgressiveConvergenceGraph mode="withSalAlph" filterModels={step.filterModels} />;
       case '2.11':
-        return <ReasoningTracesDisplay />;
+        return <ProgressiveConvergenceGraph mode="withSalAlph" highlight={step.highlight} maxModels={4} />;
       case '2.12':
-        return <ProgressiveConvergenceGraph mode="withSalAlph" highlight={step.highlight} filterModels={step.filterModels} showN={true} />;
+        return <ReasoningTracesDisplay />;
       case '2.13':
         return <ProgressiveConvergenceGraph mode="withSalAlph" highlight={step.highlight} filterModels={step.filterModels} showN={true} />;
       case '2.14':
-        return <ProgressiveConvergenceGraph mode="withSalAlph" highlight={step.highlight} filterModels={['gpt-4.1', 'deepseek-v3']} />;
-      case '2.14b':
-        return <ProgressiveConvergenceGraph mode="withSalAlph" filterModels={step.filterModels} />;
+        return <ProgressiveConvergenceGraph mode="withSalAlph" highlight={step.highlight} filterModels={step.filterModels} showN={true} />;
       case '2.15':
-        return <ProgressiveConvergenceGraph mode="withDiffer" />;
+        return <ProgressiveConvergenceGraph mode="withSalAlph" highlight={step.highlight} filterModels={['gpt-4.1', 'deepseek-v3']} />;
       case '2.16':
-        return <ProgressiveConvergenceGraph mode="withDiffer" filterModels={step.filterModels} />;
-      case '2.17':
-        return <PreActualPostComparison />;
-      case '2.18':
-        return <MidwitImage />;
-      case '2.19':
         return <ProgressiveConvergenceGraph mode="withSalAlph" filterModels={step.filterModels} />;
-      case '2.20':
+      case '2.17':
+        return <ProgressiveConvergenceGraph mode="withDiffer" />;
+      case '2.18':
+        return <ProgressiveConvergenceGraph mode="withDiffer" filterModels={step.filterModels} />;
+      case '2.19':
+        return <PreActualPostComparison />;
+      case '2.21':
+        return <MidwitImage />;
+      case '2.23':
+        return <ProgressiveConvergenceGraph mode="withSalAlph" filterModels={step.filterModels} />;
+      case '2.24':
         return <AdditiveCoordinationGraph mode="animated" />;
       case '3.1':
-        return <BiasControlledExpandedGraph />;
-      case '3.2':
         return <WeightedAverageGraph />;
+      case '3.2':
+        return <BiasControlledExpandedGraph />;
       default:
         return null;
     }
