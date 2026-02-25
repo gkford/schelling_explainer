@@ -823,7 +823,7 @@ const steps = [
   },
   {
     id: '2.21',
-    text: <>Unfortunately this is a difficult hypothesis to falsify. Following <a href="https://www.lesswrong.com/posts/NYzYJ2WoB74E6uj9L/recent-llms-can-use-filler-tokens-or-problem-repeats-to" target="_blank" rel="noopener noreferrer" style={{color: '#2563eb', textDecoration: 'underline'}}>Ryan Greenblatt's</a> finding that repeating the problem statement can boost performance, I tried giving GPT-4.1, Opus 4.5, and Nano the problem 5 times (with matched 5-repeat controls). If performance drops, I could claim GPT-4.1 is applying its middling intelligence more strenuously; but if it improves, I could claim the reasoning boost gave it the half-hop it needed—the hypothesis resists falsification. As it happens, the results proved ambiguous.</>
+    text: <>Unfortunately this is a difficult hypothesis to falsify. Following <a href="https://www.lesswrong.com/posts/NYzYJ2WoB74E6uj9L/recent-llms-can-use-filler-tokens-or-problem-repeats-to" target="_blank" rel="noopener noreferrer" style={{color: '#2563eb', textDecoration: 'underline'}}>Ryan Greenblatt's</a> finding that repeating the problem statement can boost performance, I tried giving GPT-4.1, Opus 4.5, and Nano the problem 5 times (with matched 5-repeat controls). If performance drops, I could claim GPT-4.1 is applying its middling intelligence more strenuously; but if it improves, I could claim the reasoning boost gave it the half-hop it needed—the hypothesis resists falsification. As it happens, all three models performed worse with the repeated prompt.</>
   },
   {
     id: '2.22',
@@ -865,7 +865,7 @@ const steps = [
   },
   {
     id: '4.4',
-    text: "Below is a comparison of the 5-repeat prompt experiment. GPT-4.1 and Nano both performed worse with the repeated prompt across all datasets, while Opus 4.5 showed slight improvement. This comparison uses the item-bias controlled metric."
+    text: "Below is a comparison of the 5-repeat prompt experiment. All three models performed worse with the repeated prompt. This comparison uses the item-bias controlled metric."
   }
 ];
 
@@ -3381,16 +3381,18 @@ function FiveRepeatBiasControlledGraph() {
     'salient_alphabetical': '#2563eb',
     'mundane_dangerous': '#f97316',
     'random_emoji': '#16a34a',
-    'random_mixed': '#dc2626'
+    'random_mixed': '#dc2626',
+    'weighted_average': '#111111'
   };
 
-  const datasetOrder = ['salient_alphabetical', 'mundane_dangerous', 'random_emoji', 'random_mixed'];
+  const datasetOrder = ['weighted_average', 'salient_alphabetical', 'mundane_dangerous', 'random_emoji', 'random_mixed'];
 
   const datasetDisplayNames = {
     'salient_alphabetical': 'Sal/Alph',
     'mundane_dangerous': 'Mund/Dang',
     'random_emoji': 'Emoji',
-    'random_mixed': 'Mixed'
+    'random_mixed': 'Mixed',
+    'weighted_average': 'Weighted Avg'
   };
 
   // Only show the 3 models with both versions (using matched control)
@@ -3402,6 +3404,7 @@ function FiveRepeatBiasControlledGraph() {
 
   const getModelOrder = () => {
     const modelAggregates = {};
+    // Add per-dataset data
     biasControlledData
       .filter(d => repeatCompareModelIds.includes(d.model_id))
       .forEach(d => {
@@ -3418,6 +3421,17 @@ function FiveRepeatBiasControlledGraph() {
           ci: d.coordination_ci
         };
       });
+    // Add weighted average data
+    biasControlledDataRaw.results
+      .filter(d => d.dataset === 'weighted_average' && repeatCompareModelIds.includes(d.model_id))
+      .forEach(d => {
+        if (modelAggregates[d.model_id]) {
+          modelAggregates[d.model_id].datasets['weighted_average'] = {
+            pct: d.coordination_pct,
+            ci: d.coordination_ci
+          };
+        }
+      });
 
     // Sort by the order in repeatCompareModelIds
     return repeatCompareModelIds
@@ -3430,7 +3444,7 @@ function FiveRepeatBiasControlledGraph() {
   const margin = { left: 180, right: 30, top: 40, bottom: 50 };
   const width = containerWidth;
   const subRowHeight = 9;
-  const modelGroupHeight = subRowHeight * 4 + 4;
+  const modelGroupHeight = subRowHeight * 5 + 4;
   const modelGap = 5;
   const chartHeight = models.length * (modelGroupHeight + modelGap);
   const height = chartHeight + margin.top + margin.bottom;
@@ -3467,10 +3481,6 @@ function FiveRepeatBiasControlledGraph() {
             <span style={{ color: '#666' }}>{datasetDisplayNames[dataset]}</span>
           </div>
         ))}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8 }}>
-          <span style={{ color: '#7c3aed', fontWeight: 600, fontSize: 10 }}>(5 repeats)</span>
-          <span style={{ color: '#666' }}>= repeated prompt</span>
-        </div>
       </div>
 
       <svg width={width} height={height}>
