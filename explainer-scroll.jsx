@@ -4058,7 +4058,7 @@ export default function Section2Draft() {
         fontSize: 15,
         color: '#1e3a5f'
       }}>
-        See my recent CoT obfuscation model organism work{' '}
+        Research updates on my ongoing CoT obfuscation model organism project{' '}
         <a href="https://gkford.github.io/truth_serum/" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 600 }}>
           here
         </a>
