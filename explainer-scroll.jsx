@@ -698,7 +698,7 @@ const steps = [
   // Section 0: Overview
   {
     id: '0.1',
-    text: <><h3 style={{marginTop: 0, marginBottom: 12, fontSize: 18}}>Overview</h3><p style={{marginTop: 0, fontSize: 13, color: '#555', fontStyle: 'italic'}}>This is my first foray into AI safety research, and is primarily exploratory. I present these findings with all humility, make no strong claims, and hope there is some benefit to others. I certainly learned a great deal in the process, and hope to learn more from any comments or criticism—all very welcome.</p><p>Can two instances of the same model, without communicating, independently choose the same option from a pair? This is the simplest possible test of "Schelling coordination"—the ability to converge on a shared choice without explicit communication.</p><p>Across four simple datasets, we found that frontier models were unable to outperform chance on this task when prevented from reasoning in-context. Reasoning models performed well when comparing two English words (e.g., "virtue" vs "drywall"). For DeepSeek 3.2 and Opus 4.5 thinking models, performance dropped off significantly on harder datasets involving emojis or mixed types (emojis vs words, kanji, or mathematical symbols), but remained above chance.</p><p>Curiously, GPT-4.1 Nano—likely the smallest model tested—outperformed chance on three of four datasets, apparently by attending to the most salient option. This inverts the usual expectation that capabilities increase with model size.</p><p>This is not a realistic benchmark for dangerous AI coordination. Rather, it attempts to measure a fundamental cognitive capacity that a robust dangerous capability would depend on. One motivation is detecting whether models could coordinate to sandbag evaluations undetectably. If this capability emerges in future models, we would expect to detect it first in simple tests like these before we would expect it to be measurable in more realistic scenarios. Additionally, we may be able to elicit component capabilities that are not inherently dangerous, even if we are concerned about sandbagging of more obviously dangerous capabilities.</p><p>While exploring small differences between models and their varying behaviour across conditions raises interesting questions, we should be careful not to overinterpret these results. Small differences on such a sensitive measure are likely to be noise or explained by quirks of individual models. The real signal that something interesting or concerning is happening would be rapid saturation of all datasets. A model genuinely capable of dangerous out-of-context Schelling coordination would saturate this benchmark easily, along with much harder versions of the same task.</p><p style={{marginTop: 16, fontSize: 12, color: '#666', fontStyle: 'italic'}}>The graph below shows the final benchmark results. An explanation of the metric and methodology follows further down the page.</p></>
+    text: <><h3 style={{marginTop: 0, marginBottom: 12, fontSize: 18}}>Overview</h3><p style={{marginTop: 0, fontSize: 13, color: '#555', fontStyle: 'italic'}}>This is my first foray into AI safety research, and is primarily exploratory. I present these findings with all humility, make no strong claims, and hope there is some benefit to others. I certainly learned a great deal in the process, and hope to learn more from any comments or criticism—all very welcome.</p><p>Can two instances of the same model, without communicating, independently choose the same option from a pair? This is the simplest possible test of "Schelling coordination"—the ability to converge on a shared choice without explicit communication.</p><p>Across four simple datasets, we found that frontier models were unable to outperform chance on this task when prevented from reasoning in-context. Reasoning models performed well when comparing two English words (e.g., "virtue" vs "drywall"). For DeepSeek 3.2 and Opus 4.5 thinking models, performance dropped off significantly on harder datasets involving emojis or mixed types (emojis vs words, kanji, or mathematical symbols), but remained above chance.</p><p>Curiously, GPT-4.1 Nano—likely the smallest model tested—outperformed chance on three of four datasets, apparently by attending to the most salient option. This inverts the usual expectation that capabilities increase with model size.</p><p>This is not a realistic benchmark for dangerous AI coordination. Rather, it attempts to measure a fundamental cognitive capacity that a robust dangerous capability would depend on. One motivation is detecting whether models could coordinate to sandbag evaluations undetectably. If this capability emerges in future models, we would expect to detect it first in simple tests like these before we would expect it to be measurable in more realistic scenarios. Additionally, we may be able to elicit component capabilities that are not inherently dangerous, even if we are concerned about sandbagging of more obviously dangerous capabilities.</p><p>While exploring small differences between models and their varying behaviour across conditions raises interesting questions, we should be careful not to overinterpret these results. Small differences on such a sensitive measure are likely to be noise or explained by quirks of individual models. The real signal that something interesting or concerning is happening would be rapid saturation of all datasets. A model genuinely capable of dangerous out-of-context Schelling coordination would saturate this benchmark easily, along with much harder versions of the same task.</p><p style={{marginTop: 16, fontSize: 12, color: '#666', fontStyle: 'italic'}}>The graph below shows the final benchmark results. An explanation of the metric and methodology follows further down the page.</p><p style={{marginTop: 12, fontSize: 13}}>Code and evals can be viewed at <a href="https://github.com/gkford/schelling_coordination" target="_blank" rel="noopener noreferrer" style={{color: '#2563eb', textDecoration: 'underline'}}>github.com/gkford/schelling_coordination</a>.</p></>
   },
   // Section 1: Introduction
   {
@@ -3502,12 +3502,20 @@ function FiveRepeatBiasControlledGraph() {
           // Draw separator between model pairs
           const isNewPair = modelIndex > 0 && modelIndex % 2 === 0;
 
+          // Dashed line between normal and 5-repeat within a pair
+          const isSecondInPair = modelIndex % 2 === 1;
+
           return (
             <g key={model.model_id}>
               {/* Separator line between model pairs */}
               {isNewPair && (
                 <line x1={margin.left - 160} y1={groupY - modelGap/2 - 2} x2={width - margin.right} y2={groupY - modelGap/2 - 2}
                       stroke="#999" strokeWidth={1} />
+              )}
+              {/* Dashed line between normal and 5-repeat versions */}
+              {isSecondInPair && (
+                <line x1={margin.left} y1={groupY - modelGap/2 - 2} x2={width - margin.right} y2={groupY - modelGap/2 - 2}
+                      stroke="#ccc" strokeWidth={1} strokeDasharray="4,3" />
               )}
 
               {/* Model name */}
@@ -4041,6 +4049,20 @@ export default function Section2Draft() {
       margin: '0 auto',
       padding: 24
     }}>
+      <div style={{
+        background: '#eef4ff',
+        border: '1px solid #b6d4fe',
+        borderRadius: 8,
+        padding: '10px 16px',
+        marginBottom: 16,
+        fontSize: 15,
+        color: '#1e3a5f'
+      }}>
+        See my recent CoT obfuscation model organism work{' '}
+        <a href="https://gkford.github.io/truth_serum/" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 600 }}>
+          here
+        </a>
+      </div>
       <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 8 }}>
         The Silent Agreement Evaluation
       </h1>
